@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Math Solver - JPTools</title>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+.container {
+    max-width:500px;
+    margin:auto;
+    padding:20px;
+}
+
+input {
+    width:100%;
+    padding:15px;
+    font-size:18px;
+    border-radius:8px;
+    border:none;
+    margin-bottom:10px;
+}
+
+button {
+    padding:10px 15px;
+    margin:5px;
+    border:none;
+    border-radius:5px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+.result {
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+    margin-top:10px;
+    text-align:left;
+}
+
+.step {
+    margin:5px 0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.png" style="height:40px;">
+</a>
+<h2>🤖 AI Math Solver</h2>
+</header>
+
+<div class="container">
+
+<input id="input" placeholder="Type math like: √16 + 5^2 or 50% of 200">
+
+<br>
+<button onclick="solve()">Solve</button>
+<button onclick="copy()">📋 Copy</button>
+
+<div class="result" id="output"></div>
+
+</div>
+
+<script>
+
+function cleanInput(exp) {
+    return exp
+        .replace(/√/g, "Math.sqrt")
+        .replace(/\^/g, "**")
+        .replace(/sin/g, "Math.sin")
+        .replace(/cos/g, "Math.cos")
+        .replace(/tan/g, "Math.tan")
+        .replace(/log/g, "Math.log10")
+        .replace(/%/g, "/100")
+        .replace(/of/g, "*");
+}
+
+function solve() {
+    const input = document.getElementById("input").value;
+    const output = document.getElementById("output");
+
+    if (!input) return;
+
+    let exp = cleanInput(input);
+
+    let steps = [];
+
+    try {
+        steps.push("Input: " + input);
+
+        if (input.includes("^")) {
+            steps.push("Step: Power detected (^)");
+        }
+
+        if (input.includes("√")) {
+            steps.push("Step: Square root detected");
+        }
+
+        if (input.includes("%")) {
+            steps.push("Step: Percentage converted");
+        }
+
+        if (input.includes("sin") || input.includes("cos") || input.includes("tan")) {
+            steps.push("Step: Trigonometry detected");
+        }
+
+        const result = eval(exp);
+
+        steps.push("Final Answer: " + result);
+
+        output.innerHTML = steps.map(s => `<div class="step">${s}</div>`).join("");
+
+    } catch {
+        output.innerHTML = "❌ Invalid expression";
+    }
+}
+
+function copy() {
+    navigator.clipboard.writeText(document.getElementById("output").innerText);
+    alert("Copied!");
+}
+
+</script>
+
+</body>
+</html>
