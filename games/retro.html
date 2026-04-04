@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retro Console - JPTools</title>
+
+<!-- JSZip for ZIP ROM support -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+.container { padding:20px; }
+
+#game {
+    width:100%;
+    max-width:500px;
+    height:300px;
+    margin:auto;
+    background:black;
+    border-radius:15px;
+    box-shadow:0 0 25px #22c55e;
+}
+
+.controls button {
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:white;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.png" style="height:40px;">
+</a>
+<h2>🎮 Retro Console</h2>
+</header>
+
+<div class="container">
+
+<input type="file" id="romUpload"><br>
+
+<select id="core">
+<option value="nes">NES</option>
+<option value="gba">GBA</option>
+<option value="gb">Game Boy</option>
+<option value="snes">SNES</option>
+</select>
+
+<br>
+
+<button onclick="startGame()">▶ Start Game</button>
+
+<div id="game"></div>
+
+<div class="controls">
+<button onclick="fullscreen()">📺 Fullscreen</button>
+<button onclick="resetGame()">🔁 Reset</button>
+<button onclick="saveState()">💾 Save</button>
+<button onclick="loadState()">📂 Load</button>
+</div>
+
+</div>
+
+<script>
+
+let currentRom = null;
+let currentCore = null;
+let emulatorStarted = false;
+
+// 🚀 START GAME (ZIP + NORMAL SUPPORT)
+async function startGame(){
+
+    let file = document.getElementById("romUpload").files[0];
+    let core = document.getElementById("core").value;
+
+    if(!file){
+        alert("Upload ROM first!");
+        return;
+    }
+
+    currentCore = core;
+
+    // 🔥 ZIP SUPPORT
+    if(file.name.endsWith(".zip")){
+
+        const zip = await JSZip.loadAsync(file);
+        let romFile = null;
+
+        zip.forEach((relativePath, zipEntry) => {
+            if(relativePath.match(/\.(nes|gba|gb|smc)$/i)){
+                romFile = zipEntry;
+            }
+        });
+
+        if(!romFile){
+            alert("No valid ROM found in ZIP!");
+            return;
+        }
+
+        const blob = await romFile.async("blob");
+        currentRom = URL.createObjectURL(blob);
+
+        launchEmulator(currentRom, core);
+
+    } else {
+
+        let reader = new FileReader();
+
+        reader.onload = function(e){
+            currentRom = e.target.result;
+            launchEmulator(currentRom, core);
+        };
+
+        reader.readAsDataURL(file);
+    }
+}
+
+// 🎮 LAUNCH EMULATOR
+function launchEmulator(rom, core){
+
+    document.getElementById("game").innerHTML = "";
+
+    window.EJS_player = "#game";
+    window.EJS_gameUrl = rom;
+    window.EJS_core = core;
+
+    // CDN FIX (IMPORTANT)
+    window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+
+    window.EJS_startOnLoaded = true;
+
+    let old = document.getElementById("emulatorScript");
+    if(old) old.remove();
+
+    let script = document.createElement("script");
+    script.id = "emulatorScript";
+    script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+
+    document.body.appendChild(script);
+
+    emulatorStarted = true;
+}
+
+// 📺 FULLSCREEN
+function fullscreen(){
+    let el = document.getElementById("game");
+    if(el.requestFullscreen) el.requestFullscreen();
+}
+
+// 🔁 RESET
+function resetGame(){
+    if(currentRom && currentCore){
+        launchEmulator(currentRom, currentCore);
+    }
+}
+
+// 💾 SAVE
+function saveState(){
+    if(typeof EJS_saveState === "function"){
+        EJS_saveState();
+        alert("Saved ✅");
+    }
+}
+
+// 📂 LOAD
+function loadState(){
+    if(typeof EJS_loadState === "function"){
+        EJS_loadState();
+        alert("Loaded ✅");
+    }
+}
+
+</script>
+
+</body>
+</html>
