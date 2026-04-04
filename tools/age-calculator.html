@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Calculator - JPTools</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+        }
+
+        header {
+            padding: 20px;
+            background: #1e293b;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            margin: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #22c55e;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #16a34a;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+
+        a {
+            color: #38bdf8;
+            display: block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🎂 Age Calculator</h1>
+    <p>Calculate your exact age instantly</p>
+</header>
+
+<div class="container">
+
+    <input type="date" id="dob">
+    <br>
+    <button onclick="calculateAge()">Calculate Age</button>
+
+    <div class="result" id="result"></div>
+
+    <a href="../index.html">⬅ Back to Home</a>
+
+</div>
+
+<script>
+function calculateAge() {
+    const dob = document.getElementById("dob").value;
+    const result = document.getElementById("result");
+
+    if (!dob) {
+        result.innerHTML = "⚠️ Please select your date of birth";
+        return;
+    }
+
+    const birthDate = new Date(dob);
+    const today = new Date();
+
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    let days = today.getDate() - birthDate.getDate();
+
+    if (days < 0) {
+        months--;
+        days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    }
+
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+
+    result.innerHTML = `
+        🎉 You are <b>${years}</b> years, 
+        <b>${months}</b> months, 
+        <b>${days}</b> days old
+    `;
+}
+</script>
+
+</body>
+</html>
