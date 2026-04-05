@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator - JPTools</title>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+.container {
+    max-width:400px;
+    margin:auto;
+    padding:20px;
+}
+
+#display {
+    width:100%;
+    padding:15px;
+    font-size:20px;
+    margin-bottom:10px;
+    border-radius:5px;
+    border:none;
+    text-align:right;
+}
+
+.grid {
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap:10px;
+}
+
+button {
+    padding:15px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    background:#1e293b;
+    color:white;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+button:hover {
+    background:#22c55e;
+}
+
+.result-box {
+    margin-top:15px;
+    background:#1e293b;
+    padding:10px;
+    border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html" style="display:flex;align-items:center;">
+<img src="../images/logo.png" style="height:40px;cursor:pointer;">
+</a>
+<h2>🧮 Calculator</h2>
+</header>
+
+<div class="container">
+
+<input id="display" placeholder="0">
+
+<div class="grid">
+
+<button onclick="add('7')">7</button>
+<button onclick="add('8')">8</button>
+<button onclick="add('9')">9</button>
+<button onclick="add('/')">÷</button>
+<button onclick="clearDisplay()">C</button>
+
+<button onclick="add('4')">4</button>
+<button onclick="add('5')">5</button>
+<button onclick="add('6')">6</button>
+<button onclick="add('*')">×</button>
+<button onclick="del()">⌫</button>
+
+<button onclick="add('1')">1</button>
+<button onclick="add('2')">2</button>
+<button onclick="add('3')">3</button>
+<button onclick="add('-')">−</button>
+<button onclick="add('%')">%</button>
+
+<button onclick="add('0')">0</button>
+<button onclick="add('.')">.</button>
+<button onclick="calculate()">=</button>
+<button onclick="add('+')">+</button>
+<button onclick="copyResult()">📋</button>
+
+<button onclick="add('Math.sqrt(')">√</button>
+<button onclick="add('Math.pow(')">xʸ</button>
+<button onclick="add('Math.sin(')">sin</button>
+<button onclick="add('Math.cos(')">cos</button>
+<button onclick="add('Math.tan(')">tan</button>
+
+<button onclick="add('Math.log(')">log</button>
+<button onclick="add('Math.PI')">π</button>
+<button onclick="add('Math.E')">e</button>
+<button onclick="add('(')">(</button>
+<button onclick="add(')')">)</button>
+
+</div>
+
+<div class="result-box" id="history"></div>
+
+</div>
+
+<script>
+
+const display = document.getElementById("display");
+const history = document.getElementById("history");
+
+function add(val){
+    display.value += val;
+    liveCalc();
+}
+
+function clearDisplay(){
+    display.value = "";
+}
+
+function del(){
+    display.value = display.value.slice(0,-1);
+}
+
+function calculate(){
+    try{
+        const result = eval(display.value);
+        history.innerHTML = display.value + " = " + result + "<br>" + history.innerHTML;
+        display.value = result;
+    }catch{
+        display.value = "Error";
+    }
+}
+
+function liveCalc(){
+    try{
+        const result = eval(display.value);
+        history.innerHTML = "≈ " + result;
+    }catch{}
+}
+
+function copyResult(){
+    navigator.clipboard.writeText(display.value);
+    alert("Copied!");
+}
+
+// keyboard support
+document.addEventListener("keydown", (e)=>{
+    if("0123456789+-*/.%()".includes(e.key)){
+        add(e.key);
+    } else if(e.key === "Enter"){
+        calculate();
+    } else if(e.key === "Backspace"){
+        del();
+    }
+});
+
+</script>
+
+</body>
+</html>
