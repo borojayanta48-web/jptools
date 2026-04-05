@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Chatroom - JPTools</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    color: white;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 1s ease-in-out;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:15px;
+    background: rgba(0,0,0,0.6);
+}
+
+#chatBox {
+    height: 55vh;
+    overflow-y: auto;
+    padding: 10px;
+    background: rgba(0,0,0,0.5);
+}
+
+.message {
+    background: rgba(51,65,85,0.9);
+    margin: 8px;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.bottom {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    background: rgba(0,0,0,0.6);
+}
+
+input {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    border: none;
+}
+
+button {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    border: none;
+    background: #22c55e;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #16a34a;
+}
+
+#timer {
+    width:100%;
+    text-align:center;
+    color:#facc15;
+    font-weight:bold;
+}
+
+#pauseBtn {
+    display:none;
+    background:#f59e0b;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.png" style="height:40px;">
+</a>
+
+<div>
+<h2 style="margin:0;">💬 Global Chatroom</h2>
+<div id="onlineCount">🟢 0 users online</div>
+</div>
+</header>
+
+<div style="text-align:center;">
+<input type="text" id="name" placeholder="Enter your name">
+<button onclick="setName()">Enter</button>
+</div>
+
+<div id="chatBox"></div>
+
+<div id="timer"></div>
+
+<div class="bottom">
+<input type="text" id="message" placeholder="Type message">
+<button onclick="addEmoji()">😊</button>
+<button onclick="startVoice()">🎤</button>
+<button onclick="toggleRecording()">🎙️</button>
+<button id="pauseBtn" onclick="pauseResume()">⏸️</button>
+<button onclick="sendMessage()">Send</button>
+</div>
+
+<a href="../index.html" style="color:#38bdf8;text-align:center;display:block;margin:10px;">⬅ Back</a>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, setDoc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCRTNEJF5vz0DiSxVoyxPswN5uPQAZFy8",
+  authDomain: "jptools-chat.firebaseapp.com",
+  projectId: "jptools-chat"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const chatBox = document.getElementById("chatBox");
+
+// name
+const nameInput = document.getElementById("name");
+window.setName = () => {
+    if (!nameInput.value) return;
+    localStorage.setItem("chatName", nameInput.value);
+};
+nameInput.value = localStorage.getItem("chatName") || "";
+
+// user id
+let userId = localStorage.getItem("userId");
+if (!userId) {
+    userId = "user_" + Math.random().toString(36).substring(2);
+    localStorage.setItem("userId", userId);
+}
+
+// online users
+setInterval(() => {
+    setDoc(doc(db, "onlineUsers", userId), { lastActive: Date.now() });
+}, 10000);
+
+onSnapshot(collection(db, "onlineUsers"), (snapshot) => {
+    let count = 0;
+    const now = Date.now();
+    snapshot.forEach(doc => {
+        if (now - doc.data().lastActive < 30000) count++;
+    });
+    document.getElementById("onlineCount").innerText = `🟢 ${count} users online`;
+});
+
+// send message
+window.sendMessage = async () => {
+    const name = nameInput.value;
+    const message = document.getElementById("message").value;
+    if (!name || !message) return;
+
+    await addDoc(collection(db, "messages"), {
+        name, message, time: Date.now(), votes: {}
+    });
+
+    document.getElementById("message").value = "";
+};
+
+// voting
+window.vote = async (id, type) => {
+    await updateDoc(doc(db, "messages", id), {
+        [`votes.${userId}`]: type
+    });
+};
+
+// load messages
+const q = query(collection(db, "messages"), orderBy("time"));
+onSnapshot(q, (snapshot) => {
+    chatBox.innerHTML = "";
+    snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const votes = data.votes || {};
+        let up=0, down=0;
+
+        Object.values(votes).forEach(v=>{
+            if(v==="up") up++;
+            else if(v==="down") down++;
+        });
+
+        chatBox.innerHTML += `
+        <div class="message">
+            <b>${data.name}:</b> ${data.message}
+            <br><br>
+            👍🏻 ${up}
+            <button onclick="vote('${docSnap.id}','up')">👍🏻</button>
+            👎🏻 ${down}
+            <button onclick="vote('${docSnap.id}','down')">👎🏻</button>
+        </div>`;
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
+});
+
+// emoji
+window.addEmoji = () => {
+    document.getElementById("message").value += "😊";
+};
+
+// speech
+window.startVoice = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){ alert("Not supported"); return; }
+    const rec = new SR();
+    rec.lang="en-IN";
+    rec.onresult = e=>{
+        document.getElementById("message").value += e.results[0][0].transcript;
+    };
+    rec.start();
+};
+
+// 🎙️ FIXED RECORD SYSTEM
+let recorder, chunks=[];
+let recording=false;
+let paused=false;
+let timeLeft=12;
+let interval;
+
+window.toggleRecording = async () => {
+
+    // STOP & SEND
+    if(recording){
+        recorder.stop();
+        return;
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    recorder = new MediaRecorder(stream);
+
+    chunks=[];
+    recorder.ondataavailable=e=>chunks.push(e.data);
+
+    recorder.onstop = async ()=>{
+        clearInterval(interval);
+        document.getElementById("timer").innerText="";
+        document.getElementById("pauseBtn").style.display="none";
+
+        const blob = new Blob(chunks,{type:"audio/webm"});
+        const url = URL.createObjectURL(blob);
+
+        await addDoc(collection(db,"messages"),{
+            name:nameInput.value,
+            message:`<audio controls src="${url}"></audio>`,
+            time:Date.now(),
+            votes:{}
+        });
+
+        recording=false;
+        paused=false;
+    };
+
+    recorder.start();
+    recording=true;
+    timeLeft=12;
+
+    document.getElementById("pauseBtn").style.display="inline-block";
+
+    interval=setInterval(()=>{
+        if(!paused){
+            timeLeft--;
+            document.getElementById("timer").innerText=`🎙️ Recording: ${timeLeft}s`;
+
+            if(timeLeft<=0){
+                recorder.stop();
+            }
+        }
+    },1000);
+};
+
+// ⏸️ PAUSE / RESUME
+window.pauseResume = () => {
+    if(!recorder) return;
+
+    if(!paused){
+        recorder.pause();
+        paused=true;
+        document.getElementById("pauseBtn").innerText="▶️";
+    } else {
+        recorder.resume();
+        paused=false;
+        document.getElementById("pauseBtn").innerText="⏸️";
+    }
+};
+
+// background
+const images = Array.from({length:50},(_,i)=>`https://picsum.photos/seed/${i+1}/1200/800`);
+function changeBg(){
+    const r=Math.floor(Math.random()*images.length);
+    document.body.style.backgroundImage=`url(${images[r]})`;
+}
+changeBg();
+setInterval(changeBg,60000);
+
+</script>
+
+</body>
+</html>
