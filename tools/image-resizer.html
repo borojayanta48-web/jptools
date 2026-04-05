@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Resizer - JPTools</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
+
+input, select{
+    padding:8px;
+    margin:5px;
+    border-radius:6px;
+    border:none;
+}
+
+button{
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#16a34a;
+}
+
+.card{
+    background:#1e293b;
+    padding:15px;
+    margin-top:10px;
+    border-radius:10px;
+}
+
+#preview{
+    max-width:100%;
+    margin-top:10px;
+    border-radius:10px;
+}
+
+.drop{
+    border:2px dashed #22c55e;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.png" style="height:40px;">
+</a>
+<h2>🖼️ Image Resizer PRO</h2>
+</header>
+
+<div class="container">
+
+<div class="drop" onclick="file.click()">
+📂 Click or Drop Image Here
+<input type="file" id="file" hidden accept="image/*">
+</div>
+
+<img id="preview">
+
+<div class="card">
+
+<h3>📐 Resize</h3>
+<input id="width" type="number" placeholder="Width">
+<input id="height" type="number" placeholder="Height">
+<br>
+<label>
+<input type="checkbox" id="ratio" checked> Keep Ratio
+</label>
+
+</div>
+
+<div class="card">
+
+<h3>📦 Target Size (KB)</h3>
+<input id="target" type="number" placeholder="e.g. 100">
+
+</div>
+
+<div class="card">
+
+<h3>🎨 Format & Quality</h3>
+<select id="format">
+<option value="image/jpeg">JPG</option>
+<option value="image/png">PNG</option>
+<option value="image/webp">WEBP</option>
+</select>
+
+<br>
+
+<input type="range" id="quality" min="0.1" max="1" step="0.1" value="0.8">
+<div>Quality: <span id="qv">0.8</span></div>
+
+</div>
+
+<div class="card">
+
+<button onclick="process()">🚀 Resize</button>
+<button onclick="download()">⬇️ Download</button>
+<button onclick="reset()">🔁 Reset</button>
+
+</div>
+
+<div class="card" id="info"></div>
+
+</div>
+
+<script>
+
+let img = new Image();
+let canvas = document.createElement("canvas");
+let ctx = canvas.getContext("2d");
+let outputBlob = null;
+
+const preview = document.getElementById("preview");
+
+file.onchange = e=>{
+    const f = e.target.files[0];
+    const url = URL.createObjectURL(f);
+
+    img.onload = ()=>{
+        preview.src = url;
+    };
+    img.src = url;
+};
+
+// quality display
+quality.oninput = ()=>{
+    qv.innerText = quality.value;
+};
+
+// 🚀 MAIN PROCESS
+async function process(){
+
+    let w = width.value || img.width;
+    let h = height.value || img.height;
+
+    if(ratio.checked){
+        let ratioVal = img.width / img.height;
+        if(width.value && !height.value){
+            h = w / ratioVal;
+        } else if(height.value && !width.value){
+            w = h * ratioVal;
+        }
+    }
+
+    canvas.width = w;
+    canvas.height = h;
+
+    ctx.drawImage(img, 0, 0, w, h);
+
+    let format = formatSelect();
+
+    let q = parseFloat(quality.value);
+    let targetKB = parseFloat(target.value);
+
+    // 🎯 TARGET SIZE LOGIC
+    if(targetKB){
+        let blob;
+        let tries = 0;
+
+        while(tries < 10){
+            blob = await new Promise(res => canvas.toBlob(res, format, q));
+            let sizeKB = blob.size / 1024;
+
+            if(sizeKB <= targetKB) break;
+
+            q -= 0.1;
+            if(q <= 0.1) break;
+
+            tries++;
+        }
+
+        outputBlob = blob;
+
+    } else {
+        outputBlob = await new Promise(res => canvas.toBlob(res, format, q));
+    }
+
+    let size = (outputBlob.size / 1024).toFixed(2);
+
+    info.innerHTML = `
+    ✅ Done<br>
+    📏 Size: ${size} KB
+    `;
+}
+
+function formatSelect(){
+    return document.getElementById("format").value;
+}
+
+function download(){
+    if(!outputBlob){
+        alert("Process first!");
+        return;
+    }
+
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(outputBlob);
+    a.download = "jptools-image";
+    a.click();
+}
+
+function reset(){
+    preview.src="";
+    outputBlob=null;
+    info.innerHTML="";
+}
+
+</script>
+
+</body>
+</html>
