@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Tool - JPTools</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+.container{
+    max-width:800px;
+    margin:auto;
+    padding:20px;
+}
+
+textarea{
+    width:100%;
+    height:150px;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    font-size:16px;
+}
+
+button{
+    margin:5px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#16a34a;
+}
+
+.card{
+    background:#1e293b;
+    padding:15px;
+    margin-top:10px;
+    border-radius:10px;
+}
+
+input{
+    padding:8px;
+    margin:5px;
+    border-radius:5px;
+    border:none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.png" style="height:40px;">
+</a>
+<h2>📝 Word Tool</h2>
+</header>
+
+<div class="container">
+
+<textarea id="text" placeholder="Type or paste your text..."></textarea>
+
+<!-- MAIN ACTIONS -->
+<div>
+<button onclick="upper()">UPPER</button>
+<button onclick="lower()">lower</button>
+<button onclick="titleCase()">Title</button>
+<button onclick="reverse()">Reverse</button>
+<button onclick="removeSpaces()">Trim</button>
+<button onclick="sortLines()">Sort</button>
+<button onclick="removeDuplicate()">Unique</button>
+<button onclick="copy()">Copy</button>
+<button onclick="clearText()">Clear</button>
+</div>
+
+<!-- FIND REPLACE -->
+<div class="card">
+<h3>🔍 Find & Replace</h3>
+<input id="find" placeholder="Find">
+<input id="replace" placeholder="Replace">
+<br>
+<button onclick="replaceOne()">Replace One</button>
+<button onclick="replaceAll()">Replace All</button>
+</div>
+
+<!-- EXPORT -->
+<div class="card">
+<h3>📤 Export</h3>
+<button onclick="printText()">🖨️ Print</button>
+<button onclick="downloadTXT()">📄 TXT</button>
+<button onclick="downloadPDF()">📕 PDF</button>
+</div>
+
+<!-- STATS -->
+<div class="card" id="stats"></div>
+
+<!-- EXTRA -->
+<div class="card" id="extra"></div>
+
+</div>
+
+<script>
+
+const t = document.getElementById("text");
+const stats = document.getElementById("stats");
+const extra = document.getElementById("extra");
+
+function updateStats(){
+    const text = t.value;
+
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    const chars = text.length;
+    const sentences = text.split(/[.!?]/).filter(Boolean).length;
+    const readTime = Math.ceil(words.length / 200);
+
+    stats.innerHTML = `
+    📊 Words: ${words.length} |
+    Characters: ${chars} |
+    Sentences: ${sentences} |
+    ⏱️ Read Time: ${readTime} min
+    `;
+
+    keywordDensity(words);
+}
+
+function keywordDensity(words){
+    const map = {};
+    words.forEach(w=>{
+        w = w.toLowerCase();
+        map[w] = (map[w] || 0) + 1;
+    });
+
+    let result = Object.entries(map)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0,5)
+        .map(([w,c])=>`${w} (${c})`)
+        .join(", ");
+
+    extra.innerHTML = `🔥 Top Keywords: ${result}`;
+}
+
+function upper(){ t.value = t.value.toUpperCase(); updateStats(); }
+function lower(){ t.value = t.value.toLowerCase(); updateStats(); }
+
+function titleCase(){
+    t.value = t.value.replace(/\w\S*/g,
+        txt=>txt.charAt(0).toUpperCase()+txt.substr(1).toLowerCase()
+    );
+    updateStats();
+}
+
+function reverse(){
+    t.value = t.value.split("").reverse().join("");
+    updateStats();
+}
+
+function removeSpaces(){
+    t.value = t.value.replace(/\s+/g," ").trim();
+    updateStats();
+}
+
+function sortLines(){
+    t.value = t.value.split("\n").sort().join("\n");
+    updateStats();
+}
+
+function removeDuplicate(){
+    let arr = t.value.split("\n");
+    t.value = [...new Set(arr)].join("\n");
+    updateStats();
+}
+
+function copy(){
+    navigator.clipboard.writeText(t.value);
+    alert("Copied!");
+}
+
+function clearText(){
+    t.value="";
+    updateStats();
+}
+
+// 🔍 FIND REPLACE
+function replaceOne(){
+    const find = document.getElementById("find").value;
+    const rep = document.getElementById("replace").value;
+
+    t.value = t.value.replace(find, rep);
+    updateStats();
+}
+
+function replaceAll(){
+    const find = document.getElementById("find").value;
+    const rep = document.getElementById("replace").value;
+
+    const regex = new RegExp(find, "g");
+    t.value = t.value.replace(regex, rep);
+    updateStats();
+}
+
+// 🖨️ PRINT
+function printText(){
+    const win = window.open();
+    win.document.write("<pre>"+t.value+"</pre>");
+    win.print();
+}
+
+// 📄 TXT DOWNLOAD
+function downloadTXT(){
+    const blob = new Blob([t.value], {type:"text/plain"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "jptools.txt";
+    a.click();
+}
+
+// 📕 PDF DOWNLOAD
+function downloadPDF(){
+    const win = window.open();
+    win.document.write("<pre>"+t.value+"</pre>");
+    win.print();
+}
+
+t.addEventListener("input", updateStats);
+updateStats();
+
+</script>
+
+</body>
+</html>
