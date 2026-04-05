@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retro Console - JPTools</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+.container { padding:20px; }
+
+/* 🔥 GAME WRAPPER FOR ASPECT CONTROL */
+#gameWrapper {
+    width:100%;
+    max-width:500px;
+    margin:auto;
+}
+
+/* Default = Fit */
+#game {
+    width:100%;
+    height:300px;
+    background:black;
+    border-radius:15px;
+    box-shadow:0 0 25px #22c55e;
+    object-fit:contain;
+}
+
+/* 4:3 mode */
+.aspect-4-3 #game {
+    aspect-ratio: 4 / 3;
+    height:auto;
+}
+
+/* Stretch */
+.aspect-stretch #game {
+    width:100%;
+    height:300px;
+}
+
+/* Zoom */
+.aspect-zoom #game {
+    transform: scale(1.2);
+    transform-origin:center;
+}
+
+.controls button {
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:white;
+    font-weight:bold;
+}
+
+.stop-btn {
+    background:#ef4444 !important;
+}
+
+.instructions {
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    text-align:left;
+    max-width:600px;
+    margin-left:auto;
+    margin-right:auto;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.png" style="height:40px;">
+</a>
+<h2>🎮 Retro Console</h2>
+</header>
+
+<div class="container">
+
+<div class="instructions">
+<b>📘 Instructions:</b><br><br>
+
+👉 Upload ROM (.nes, .gba, .gb, .smc, etc.)<br>
+👉 ZIP supported ✅ (best with one ROM inside)<br><br>
+
+<b>🎮 Supported:</b><br>
+NES, GBA, GB, SNES, Sega, Atari<br><br>
+
+<b>🎯 Controls:</b><br>
+Keyboard / Touch / Controller 🎮<br>
+</div>
+
+<input type="file" id="romUpload"><br><br>
+
+<button onclick="startGame()">▶ Start Game</button>
+
+<div id="gameWrapper">
+<div id="game"></div>
+</div>
+
+<div class="controls">
+<button onclick="fullscreen()">📺 Fullscreen</button>
+<button onclick="resetGame()">🔁 Reset</button>
+<button onclick="saveState()">💾 Save</button>
+<button onclick="loadState()">📂 Load</button>
+<button onclick="toggleAspect()">📐 Aspect</button>
+<button class="stop-btn" onclick="stopGame()">⛔ Stop</button>
+</div>
+
+</div>
+
+<script>
+
+let currentRom = null;
+let currentCore = null;
+let aspectMode = 0;
+
+// 🔥 AUTO DETECT CORE
+function detectCore(name){
+    name = name.toLowerCase();
+
+    if(name.endsWith(".nes")) return "nes";
+    if(name.endsWith(".gba")) return "gba";
+    if(name.endsWith(".gb") || name.endsWith(".gbc")) return "gb";
+    if(name.endsWith(".smc") || name.endsWith(".sfc")) return "snes";
+    if(name.endsWith(".md") || name.endsWith(".gen")) return "segaMD";
+    if(name.endsWith(".gg")) return "segaGG";
+    if(name.endsWith(".a26")) return "atari2600";
+
+    return "nes";
+}
+
+// 🚀 START
+async function startGame(){
+
+    let file = document.getElementById("romUpload").files[0];
+
+    if(!file){
+        alert("Upload ROM first!");
+        return;
+    }
+
+    currentCore = detectCore(file.name);
+
+    if(file.name.endsWith(".zip")){
+        const zip = await JSZip.loadAsync(file);
+        let romFile=null;
+
+        zip.forEach((path,entry)=>{
+            if(path.match(/\.(nes|gba|gb|gbc|smc|sfc|md|gen|gg|a26)$/i)){
+                romFile=entry;
+            }
+        });
+
+        if(!romFile){
+            alert("No valid ROM in ZIP");
+            return;
+        }
+
+        const blob = await romFile.async("blob");
+
+        currentCore = detectCore(romFile.name);
+        currentRom = URL.createObjectURL(blob);
+
+        launchEmulator(currentRom,currentCore);
+
+    } else {
+        let reader = new FileReader();
+        reader.onload = e=>{
+            currentRom = e.target.result;
+            launchEmulator(currentRom,currentCore);
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// 🎮 LAUNCH
+function launchEmulator(rom,core){
+
+    document.getElementById("game").innerHTML="";
+
+    window.EJS_player="#game";
+    window.EJS_gameUrl=rom;
+    window.EJS_core=core;
+
+    window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
+    window.EJS_startOnLoaded=true;
+
+    let old=document.getElementById("emulatorScript");
+    if(old) old.remove();
+
+    let script=document.createElement("script");
+    script.id="emulatorScript";
+    script.src="https://cdn.emulatorjs.org/stable/data/loader.js";
+
+    document.body.appendChild(script);
+}
+
+// 🛑 STOP
+function stopGame(){
+    document.getElementById("game").innerHTML="";
+    let s=document.getElementById("emulatorScript");
+    if(s) s.remove();
+    currentRom=null;
+    currentCore=null;
+    document.getElementById("romUpload").value="";
+}
+
+// 📺 FULLSCREEN
+function fullscreen(){
+    let el=document.getElementById("gameWrapper");
+    if(el.requestFullscreen) el.requestFullscreen();
+}
+
+// 🔁 RESET
+function resetGame(){
+    if(currentRom && currentCore){
+        launchEmulator(currentRom,currentCore);
+    }
+}
+
+// 💾 SAVE
+function saveState(){
+    if(typeof EJS_saveState==="function"){
+        EJS_saveState();
+        alert("Saved");
+    }
+}
+
+// 📂 LOAD
+function loadState(){
+    if(typeof EJS_loadState==="function"){
+        EJS_loadState();
+        alert("Loaded");
+    }
+}
+
+// 📐 ASPECT SWITCH
+function toggleAspect(){
+    const wrapper = document.getElementById("gameWrapper");
+
+    wrapper.classList.remove("aspect-4-3","aspect-stretch","aspect-zoom");
+
+    aspectMode++;
+
+    if(aspectMode===1){
+        wrapper.classList.add("aspect-4-3");
+    } else if(aspectMode===2){
+        wrapper.classList.add("aspect-stretch");
+    } else if(aspectMode===3){
+        wrapper.classList.add("aspect-zoom");
+    } else {
+        aspectMode=0;
+    }
+}
+
+</script>
+
+</body>
+</html>
