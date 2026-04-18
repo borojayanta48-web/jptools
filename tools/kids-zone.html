@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kids AI Teacher - JPTools</title>
+
+<style>
+body {margin:0;font-family:Arial;background:#0f172a;color:white;text-align:center;}
+header {display:flex;align-items:center;gap:10px;padding:10px;background:#1e293b;}
+
+.container {padding:15px;}
+
+.section {
+    margin-top:20px;
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+}
+
+input {
+    padding:10px;
+    border-radius:5px;
+    border:none;
+    width:80%;
+}
+
+button {
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:5px;
+    background:#22c55e;
+    color:white;
+}
+
+#chat {
+    max-height:300px;
+    overflow:auto;
+    text-align:left;
+    margin-top:10px;
+}
+
+.msg {
+    margin:5px;
+    padding:10px;
+    border-radius:10px;
+}
+
+.user {background:#334155;}
+.ai {background:#22c55e;color:black;}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.jpg" style="height:40px;">
+</a>
+<h2>🤖 Kids AI Teacher</h2>
+</header>
+
+<div class="container">
+
+<div class="section">
+<h3>AI Chat (Saved)</h3>
+
+<input id="input" placeholder="Ask something...">
+<br>
+
+<button onclick="send()">Ask</button>
+<button onclick="voice()">🎤 Speak</button>
+<button onclick="clearChat()">🗑 Clear</button>
+
+<div id="chat"></div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+// 🔥 FIREBASE IMPORT
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+getDatabase, ref, push, onValue, remove
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// 🔥 YOUR FIREBASE CONFIG (already from your site)
+const firebaseConfig = {
+apiKey:"AIzaSyACzipenb7Sx0-XsNF8xiNCEE8uIeOsXuU",
+authDomain:"jayvox-be536.firebaseapp.com",
+databaseURL:"https://jayvox-be536-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId:"jayvox-be536",
+storageBucket:"jayvox-be536.firebasestorage.app",
+messagingSenderId:"427814511964",
+appId:"1:427814511964:web:e8a16e2e2275ef1d160d99"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// 🔑 GEMINI API KEY
+const API_KEY = "AIzaSyCMWGWw2kw7OGHY3iSlXcWjTxHebjSsC6U";
+
+// 🔊 SPEAK
+function speak(text){
+speechSynthesis.cancel();
+speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+}
+
+// 💬 ADD UI MESSAGE
+function addMsg(text,cls){
+const div=document.createElement("div");
+div.className="msg "+cls;
+div.innerText=text;
+document.getElementById("chat").appendChild(div);
+}
+
+// 🔥 SAVE MESSAGE TO FIREBASE
+function saveMessage(text,type){
+push(ref(db,"kidsAI"),{
+text:text,
+type:type,
+time:Date.now()
+});
+}
+
+// 🔥 LOAD CHAT HISTORY
+onValue(ref(db,"kidsAI"),snapshot=>{
+const chat=document.getElementById("chat");
+chat.innerHTML="";
+
+snapshot.forEach(data=>{
+const msg=data.val();
+addMsg(msg.text,msg.type);
+});
+});
+
+// 🤖 AI SEND
+window.send = async function(){
+
+const input=document.getElementById("input");
+const text=input.value.trim();
+
+if(!text) return;
+
+addMsg(text,"user");
+saveMessage(text,"user");
+
+input.value="";
+
+try{
+
+const res = await fetch(
+"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key="+API_KEY,
+{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+contents:[{
+parts:[{
+text:"Explain to a kid in simple way: "+text
+}]
+}]
+})
+});
+
+const data = await res.json();
+
+let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Try again 😊";
+
+addMsg(reply,"ai");
+saveMessage(reply,"ai");
+
+speak(reply);
+
+}catch{
+addMsg("⚠️ AI Error","ai");
+}
+
+};
+
+// 🎤 VOICE
+window.voice = function(){
+try{
+const rec=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+
+rec.onresult=e=>{
+document.getElementById("input").value=e.results[0][0].transcript;
+send();
+};
+
+rec.start();
+}catch{
+alert("Voice not supported");
+}
+};
+
+// 🗑 CLEAR CHAT
+window.clearChat = function(){
+remove(ref(db,"kidsAI"));
+};
+
+</script>
+
+</body>
+</html>
