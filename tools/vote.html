@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vote - JPTools</title>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:15px;
+    background:#1e293b;
+}
+
+.container {
+    padding:20px;
+}
+
+button {
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+.candidate {
+    background:#1e293b;
+    margin:15px;
+    padding:15px;
+    border-radius:10px;
+}
+
+.candidate img {
+    width:100px;
+    height:100px;
+    object-fit:cover;
+    border-radius:10px;
+}
+
+.desc {
+    margin:15px;
+    padding:10px;
+    background:#1e293b;
+    border-radius:10px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<img src="../images/logo.jpg" style="height:40px;">
+<h2>🗳️ Vote</h2>
+</header>
+
+<div class="container">
+
+<button onclick="login()">🔐 Login to Vote</button>
+<p id="user"></p>
+
+<h3 id="title"></h3>
+<div id="desc" class="desc"></div>
+
+<div id="candidates"></div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// 🔥 YOUR FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let user = null;
+let pollId = new URLSearchParams(window.location.search).get("poll");
+
+// LOGIN
+window.login = async () => {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    user = result.user;
+    document.getElementById("user").innerText = "Logged in: " + user.displayName;
+    loadPoll();
+};
+
+// LOAD POLL
+async function loadPoll(){
+
+if(!pollId){
+    alert("Invalid poll link");
+    return;
+}
+
+const docRef = doc(db, "polls", pollId);
+const snap = await getDoc(docRef);
+
+if(!snap.exists()){
+    alert("Poll not found");
+    return;
+}
+
+const poll = snap.data();
+
+document.getElementById("title").innerText = poll.title;
+document.getElementById("desc").innerHTML = "<b>" + poll.description + "</b>";
+
+renderCandidates(poll);
+}
+
+// RENDER
+function renderCandidates(poll){
+
+const container = document.getElementById("candidates");
+container.innerHTML = "";
+
+poll.candidates.forEach((c, index) => {
+
+container.innerHTML += `
+<div class="candidate">
+<img src="${c.imageUrl}">
+<h3>${c.name}</h3>
+<p>Votes: ${c.votes}</p>
+<button onclick="vote(${index})">Vote</button>
+</div>
+`;
+
+});
+}
+
+// VOTE
+window.vote = async (index) => {
+
+if(!user){
+    alert("Login first");
+    return;
+}
+
+// CHECK IF ALREADY VOTED
+const voteRef = doc(db, "votes", pollId + "_" + user.uid);
+const voteSnap = await getDoc(voteRef);
+
+if(voteSnap.exists()){
+    alert("You already voted");
+    return;
+}
+
+// GET POLL
+const pollRef = doc(db, "polls", pollId);
+const pollSnap = await getDoc(pollRef);
+
+let poll = pollSnap.data();
+
+// INCREMENT VOTE
+poll.candidates[index].votes += 1;
+
+// SAVE POLL
+await updateDoc(pollRef, {
+    candidates: poll.candidates
+});
+
+// SAVE USER VOTE
+await setDoc(voteRef, {
+    user: user.uid,
+    candidate: index
+});
+
+alert("Vote submitted ✅");
+
+loadPoll();
+};
+
+</script>
+
+</body>
+</html>
