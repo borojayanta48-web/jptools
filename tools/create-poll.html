@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Poll - JPTools</title>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:15px;
+    background:#1e293b;
+}
+
+.container {
+    padding:20px;
+}
+
+input, textarea {
+    width:90%;
+    max-width:400px;
+    padding:10px;
+    margin:10px;
+    border-radius:10px;
+    border:none;
+}
+
+button {
+    padding:10px 15px;
+    margin:5px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+.candidate {
+    background:#1e293b;
+    padding:10px;
+    margin:10px;
+    border-radius:10px;
+}
+
+.linkBox {
+    margin-top:20px;
+    background:#1e293b;
+    padding:10px;
+    border-radius:10px;
+    word-break:break-all;
+}
+
+.disclaimer {
+    margin-top:15px;
+    padding:10px;
+    background:#334155;
+    border-radius:10px;
+    font-size:13px;
+    opacity:0.8;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.jpg" style="height:40px;">
+</a>
+<h2>Create Poll</h2>
+</header>
+
+<div class="container">
+
+<button onclick="login()">🔐 Login with Google</button>
+<p id="user"></p>
+
+<input id="title" placeholder="Poll Title">
+
+<textarea id="desc" maxlength="200" placeholder="Description (max 200 words)"></textarea>
+
+<!-- ✅ TIMER ADDED -->
+<input type="datetime-local" id="endTime">
+
+<div id="candidates"></div>
+
+<button onclick="addCandidate()">➕ Add Candidate</button>
+
+<br>
+<button onclick="createPoll()">🚀 Create Poll</button>
+
+<div class="linkBox" id="linkBox"></div>
+
+<!-- ✅ DISCLAIMER -->
+<div class="disclaimer">
+⚠️ This is a semi-serious public poll. Results should not be considered official, accurate, or legally valid. Users may participate for fun and general opinion only.
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+// 🔥 YOUR FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+let user = null;
+let candidateCount = 0;
+
+// LOGIN
+window.login = async () => {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    user = result.user;
+    document.getElementById("user").innerText = "Logged in: " + user.displayName;
+};
+
+// ADD CANDIDATE
+window.addCandidate = () => {
+
+if(candidateCount >= 16){
+    alert("Max 16 candidates allowed");
+    return;
+}
+
+candidateCount++;
+
+const div = document.createElement("div");
+div.className = "candidate";
+
+div.innerHTML = `
+<input placeholder="Candidate Name" id="name${candidateCount}">
+<input type="file" id="img${candidateCount}">
+`;
+
+document.getElementById("candidates").appendChild(div);
+};
+
+// CREATE POLL
+window.createPoll = async () => {
+
+if(!user){
+    alert("Please login first");
+    return;
+}
+
+const title = document.getElementById("title").value.trim();
+const desc = document.getElementById("desc").value.trim();
+const endTimeInput = document.getElementById("endTime").value;
+
+if(!title){
+    alert("Enter poll title");
+    return;
+}
+
+if(!endTimeInput){
+    alert("Set poll end time");
+    return;
+}
+
+const endTime = new Date(endTimeInput).getTime();
+
+if(endTime <= Date.now()){
+    alert("End time must be in future");
+    return;
+}
+
+const pollId = "poll_" + Math.random().toString(36).substring(2);
+
+let candidates = [];
+
+for(let i=1;i<=candidateCount;i++){
+
+    const name = document.getElementById("name"+i)?.value;
+    const file = document.getElementById("img"+i)?.files[0];
+
+    if(!name || !file) continue;
+
+    const path = `polls/${pollId}/${file.name}`;
+    const storageRef = ref(storage, path);
+
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+
+    candidates.push({
+        name,
+        imageUrl: url,
+        imagePath: path,
+        votes: 0
+    });
+}
+
+if(candidates.length === 0){
+    alert("Add at least one candidate");
+    return;
+}
+
+// SAVE POLL
+await setDoc(doc(db, "polls", pollId), {
+    title,
+    description: desc,
+    createdBy: user.uid,
+    createdAt: Date.now(),
+    endTime: endTime,
+    isEnded: false,
+    candidates
+});
+
+// GENERATE LINK
+const link = `${location.origin}/tools/vote.html?poll=${pollId}`;
+
+document.getElementById("linkBox").innerHTML = `
+<b>Share this link:</b><br>
+<a href="${link}" target="_blank">${link}</a>
+`;
+
+};
+
+</script>
+
+</body>
+</html>
