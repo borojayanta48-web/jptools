@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Poll - JPTools</title>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:15px;
+    background:#1e293b;
+}
+
+.container { padding:20px; }
+
+input, textarea {
+    width:90%;
+    max-width:400px;
+    padding:10px;
+    margin:10px;
+    border-radius:10px;
+    border:none;
+}
+
+button {
+    padding:10px 15px;
+    margin:5px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+.candidate {
+    background:#1e293b;
+    padding:10px;
+    margin:10px;
+    border-radius:10px;
+}
+
+.disclaimer {
+    margin-top:15px;
+    padding:10px;
+    background:#334155;
+    border-radius:10px;
+    font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.jpg" style="height:40px;">
+</a>
+<h2>Create Poll</h2>
+</header>
+
+<div class="container">
+
+<button onclick="login()">🔐 Login with Google</button>
+<p id="user"></p>
+
+<input id="title" placeholder="Poll Title">
+<textarea id="desc" maxlength="200" placeholder="Description"></textarea>
+<input type="datetime-local" id="endTime">
+
+<div id="candidates"></div>
+
+<button onclick="addCandidate()">➕ Add Candidate</button>
+<br>
+<button onclick="createPoll()">🚀 Create Poll</button>
+
+<div id="linkBox"></div>
+
+<div class="disclaimer">
+⚠️ This is a semi-serious public poll. Results are not official or legally valid.
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+// ✅ YOUR CONFIG (ALREADY ADDED)
+const firebaseConfig = {
+  apiKey: "AIzaSyACzipenb7Sx0-XsNF8xiNCEE8uIeOsXuU",
+  authDomain: "jayvox-be536.firebaseapp.com",
+  databaseURL: "https://jayvox-be536-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "jayvox-be536",
+  storageBucket: "jayvox-be536.firebasestorage.app",
+  messagingSenderId: "427814511964",
+  appId: "1:427814511964:web:e8a16e2e2275ef1d160d99"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+let user = null;
+let candidateCount = 0;
+
+// ✅ HANDLE REDIRECT LOGIN (IMPORTANT FIX)
+getRedirectResult(auth).then(result => {
+    if(result && result.user){
+        user = result.user;
+        document.getElementById("user").innerText =
+            "Logged in: " + user.displayName;
+    }
+});
+
+// ✅ LOGIN FUNCTION (FIXED)
+window.login = async () => {
+
+    const provider = new GoogleAuthProvider();
+
+    try {
+        const result = await signInWithPopup(auth, provider);
+        user = result.user;
+        document.getElementById("user").innerText =
+            "Logged in: " + user.displayName;
+
+    } catch (err) {
+        // MOBILE FIX
+        await signInWithRedirect(auth, provider);
+    }
+};
+
+// ADD CANDIDATE
+window.addCandidate = () => {
+
+if(candidateCount >= 16){
+    alert("Max 16 candidates");
+    return;
+}
+
+candidateCount++;
+
+const div = document.createElement("div");
+div.className = "candidate";
+
+div.innerHTML = `
+<input placeholder="Candidate Name" id="name${candidateCount}">
+<input type="file" id="img${candidateCount}">
+`;
+
+document.getElementById("candidates").appendChild(div);
+};
+
+// CREATE POLL
+window.createPoll = async () => {
+
+if(!user){
+    alert("Login first");
+    return;
+}
+
+const pollId = "poll_" + Math.random().toString(36).substring(2);
+
+let candidates = [];
+
+for(let i=1;i<=candidateCount;i++){
+
+    const name = document.getElementById("name"+i)?.value;
+    const file = document.getElementById("img"+i)?.files[0];
+
+    if(!name || !file) continue;
+
+    const path = `polls/${pollId}/${file.name}`;
+    const storageRef = ref(storage, path);
+
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+
+    candidates.push({
+        name,
+        imageUrl: url,
+        imagePath: path,
+        votes: 0
+    });
+}
+
+await setDoc(doc(db, "polls", pollId), {
+    title: document.getElementById("title").value,
+    description: document.getElementById("desc").value,
+    createdBy: user.uid,
+    createdAt: Date.now(),
+    endTime: new Date(document.getElementById("endTime").value).getTime(),
+    isEnded: false,
+    candidates
+});
+
+const link = `${location.origin}/tools/vote.html?poll=${pollId}`;
+
+document.getElementById("linkBox").innerHTML =
+`<b>Share:</b><br><a href="${link}" target="_blank">${link}</a>`;
+};
+
+</script>
+
+</body>
+</html>
