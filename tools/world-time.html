@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Time - JPTools</title>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+.container { padding:15px; }
+
+input, select {
+    padding:10px;
+    margin:5px;
+    border-radius:8px;
+    border:none;
+}
+
+.clock {
+    background:#1e293b;
+    margin:10px;
+    padding:15px;
+    border-radius:10px;
+}
+
+.time {
+    font-size:22px;
+    color:#22c55e;
+}
+
+.small {
+    font-size:12px;
+    opacity:0.7;
+}
+
+button {
+    padding:8px;
+    border:none;
+    border-radius:5px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.jpg" style="height:40px;">
+</a>
+<h2>🌍 World Time Pro</h2>
+</header>
+
+<div class="container">
+
+<input id="search" placeholder="Search city or country...">
+
+<select id="format">
+<option value="12">12 Hour</option>
+<option value="24">24 Hour</option>
+</select>
+
+<br>
+
+<!-- TIME DIFFERENCE -->
+<input id="city1" placeholder="City 1">
+<input id="city2" placeholder="City 2">
+<button onclick="calcDiff()">⏱ Compare</button>
+<div id="diff"></div>
+
+<div id="clocks"></div>
+
+</div>
+
+<script>
+
+// 🌍 MASSIVE TIMEZONE LIST
+const timezones = [
+"Asia/Kolkata","America/New_York","Europe/London","Asia/Tokyo","Australia/Sydney",
+"Asia/Dubai","Europe/Paris","Asia/Shanghai","Europe/Moscow","America/Los_Angeles",
+"America/Chicago","Africa/Cairo","Africa/Johannesburg","Europe/Berlin",
+"Asia/Bangkok","Asia/Singapore","Asia/Seoul","Asia/Kathmandu","Asia/Karachi",
+"America/Toronto","America/Vancouver","America/Sao_Paulo","America/Mexico_City",
+"Pacific/Auckland","Pacific/Honolulu","Asia/Jakarta","Asia/Manila"
+];
+
+// ⭐ FAVORITES
+let favorites = JSON.parse(localStorage.getItem("favTZ")) || [];
+
+// 🧠 SEARCH
+document.getElementById("search").addEventListener("input", update);
+
+// ⏱ FORMAT
+document.getElementById("format").addEventListener("change", update);
+
+// 🌍 MAIN UPDATE
+function update(){
+
+    const container = document.getElementById("clocks");
+    const search = document.getElementById("search").value.toLowerCase();
+    const format = document.getElementById("format").value;
+
+    container.innerHTML="";
+
+    let list = [...favorites, ...timezones.filter(t=>!favorites.includes(t))];
+
+    list.forEach(tz => {
+
+        if(!tz.toLowerCase().includes(search)) return;
+
+        const now = new Date();
+
+        const time = now.toLocaleTimeString("en-US", {
+            timeZone: tz,
+            hour:'2-digit',
+            minute:'2-digit',
+            second:'2-digit',
+            hour12: format==="12"
+        });
+
+        const hour = new Date().toLocaleString("en-US", {timeZone:tz, hour:"numeric"});
+        const isDay = hour >= 6 && hour <= 18;
+
+        container.innerHTML += `
+        <div class="clock">
+            <b>${tz.replace("_"," ")}</b>
+            <div class="time">${time}</div>
+            <div class="small">${isDay ? "☀️ Day" : "🌙 Night"}</div>
+            <button onclick="toggleFav('${tz}')">
+                ${favorites.includes(tz) ? "⭐ Remove" : "⭐ Add"}
+            </button>
+        </div>
+        `;
+    });
+}
+
+// ⭐ FAVORITE TOGGLE
+function toggleFav(tz){
+    if(favorites.includes(tz)){
+        favorites = favorites.filter(t=>t!==tz);
+    } else {
+        favorites.unshift(tz);
+    }
+    localStorage.setItem("favTZ", JSON.stringify(favorites));
+    update();
+}
+
+// ⏱ TIME DIFFERENCE
+function calcDiff(){
+
+    const c1 = document.getElementById("city1").value;
+    const c2 = document.getElementById("city2").value;
+
+    try{
+        const t1 = new Date().toLocaleString("en-US",{timeZone:c1});
+        const t2 = new Date().toLocaleString("en-US",{timeZone:c2});
+
+        const diff = (new Date(t1) - new Date(t2)) / (1000*60*60);
+
+        document.getElementById("diff").innerText =
+            "Difference: " + diff.toFixed(1) + " hours";
+
+    }catch{
+        document.getElementById("diff").innerText = "Invalid timezone!";
+    }
+}
+
+// 🔄 LIVE UPDATE
+setInterval(update,1000);
+
+// 📍 AUTO ADD USER TIME
+const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+if(!favorites.includes(userTZ)) favorites.unshift(userTZ);
+
+update();
+
+</script>
+
+</body>
+</html>
