@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - JPTools</title>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:15px;
+    background:#1e293b;
+}
+
+.container {
+    padding:20px;
+}
+
+.poll {
+    background:#1e293b;
+    margin:15px;
+    padding:15px;
+    border-radius:10px;
+}
+
+button {
+    padding:8px 12px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#22c55e;
+    color:white;
+}
+
+.danger {
+    background:#ef4444;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.jpg" style="height:40px;">
+</a>
+<h2>📊 Admin Dashboard</h2>
+</header>
+
+<div class="container">
+
+<button onclick="login()">🔐 Login</button>
+<p id="user"></p>
+
+<div id="polls"></div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+// 🔥 YOUR FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+let user = null;
+
+// LOGIN
+window.login = async () => {
+    const result = await signInWithPopup(auth, new GoogleAuthProvider());
+    user = result.user;
+    document.getElementById("user").innerText = user.displayName;
+    loadPolls();
+};
+
+// LOAD POLLS
+async function loadPolls(){
+
+const q = query(collection(db,"polls"), where("createdBy","==",user.uid));
+const snapshot = await getDocs(q);
+
+const container = document.getElementById("polls");
+container.innerHTML = "";
+
+snapshot.forEach(docSnap=>{
+
+const poll = docSnap.data();
+const id = docSnap.id;
+
+let totalVotes = poll.candidates.reduce((sum,c)=>sum+c.votes,0);
+
+container.innerHTML += `
+<div class="poll">
+<h3>${poll.title}</h3>
+<p>Status: ${poll.isEnded ? "⛔ Ended" : "🟢 Active"}</p>
+<p>Total Votes: ${totalVotes}</p>
+
+<button onclick="openPoll('${id}')">🔗 Open</button>
+<button onclick="endPoll('${id}')" class="danger">End</button>
+<button onclick="deletePoll('${id}')" class="danger">Delete</button>
+</div>
+`;
+
+});
+}
+
+// OPEN
+window.openPoll = (id)=>{
+    window.open(`/tools/vote.html?poll=${id}`, "_blank");
+};
+
+// END POLL
+window.endPoll = async (id)=>{
+    await updateDoc(doc(db,"polls",id),{
+        isEnded:true
+    });
+    alert("Poll ended");
+    loadPolls();
+};
+
+// DELETE POLL + IMAGES
+window.deletePoll = async (id)=>{
+
+if(!confirm("Delete poll permanently?")) return;
+
+// get poll
+const pollSnap = await getDocs(query(collection(db,"polls")));
+let pollData;
+
+pollSnap.forEach(d=>{
+    if(d.id === id) pollData = d.data();
+});
+
+// delete images
+for(let c of pollData.candidates){
+    try{
+        await deleteObject(ref(storage,c.imagePath));
+    }catch(e){}
+}
+
+// delete poll
+await deleteDoc(doc(db,"polls",id));
+
+alert("Poll deleted");
+loadPolls();
+};
+
+</script>
+
+</body>
+</html>
