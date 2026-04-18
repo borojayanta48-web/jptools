@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Poll - JayVox</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+}
+header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:15px;
+    background:#1e293b;
+}
+input,textarea{
+    width:90%;
+    margin:10px;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+}
+button{
+    padding:12px 20px;
+    margin:10px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    color:white;
+    font-size:16px;
+}
+.candidate{
+    background:#1e293b;
+    margin:10px;
+    padding:10px;
+    border-radius:10px;
+}
+.note{
+    background:#334155;
+    padding:10px;
+    margin:15px;
+    border-radius:10px;
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<img src="../images/logo.jpg" height="40">
+<h2>Create Poll</h2>
+</header>
+
+<center>
+
+<button onclick="login()">🔐 Login with Google</button>
+<div id="user"></div>
+
+<input id="title" placeholder="Poll Title">
+<textarea id="desc" placeholder="Description (max 200 words)"></textarea>
+
+<input type="datetime-local" id="endTime">
+
+<div id="candidates"></div>
+
+<button onclick="addCandidate()">➕ Add Candidate</button>
+<br>
+<button onclick="createPoll()">🚀 Create Poll</button>
+
+<div class="note">
+⚠️ This is a semi-serious public poll. Results are for fun only and not official.
+</div>
+
+</center>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyACzipenb7Sx0-XsNF8xiNCEE8uIeOsXuU",
+  authDomain: "jayvox-be536.firebaseapp.com",
+  projectId: "jayvox-be536"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let user=null;
+
+window.login = async ()=>{
+    const provider=new GoogleAuthProvider();
+    const res=await signInWithPopup(auth,provider);
+    user=res.user;
+    document.getElementById("user").innerText="Logged in: "+user.displayName;
+};
+
+let count=0;
+
+window.addCandidate = ()=>{
+    if(count>=16) return alert("Max 16 candidates");
+
+    const div=document.createElement("div");
+    div.className="candidate";
+
+    div.innerHTML=`
+    <input placeholder="Candidate Name" class="name">
+    <input placeholder="Symbol (emoji e.g. 🌸 🚜 🐘)" class="emoji">
+    <input placeholder="Optional Image URL" class="img">
+    `;
+
+    document.getElementById("candidates").appendChild(div);
+    count++;
+};
+
+window.createPoll = async ()=>{
+    if(!user) return alert("Login first");
+
+    const pollId="poll_"+Date.now();
+
+    const candidates=[];
+
+    document.querySelectorAll(".candidate").forEach(c=>{
+        const name=c.querySelector(".name").value;
+        const emoji=c.querySelector(".emoji").value;
+        const img=c.querySelector(".img").value;
+
+        if(name){
+            candidates.push({
+                name,
+                emoji,
+                img
+            });
+        }
+    });
+
+    await setDoc(doc(db,"polls",pollId),{
+        title:document.getElementById("title").value,
+        description:document.getElementById("desc").value,
+        createdBy:user.uid,
+        createdAt:Date.now(),
+        endTime:new Date(document.getElementById("endTime").value).getTime(),
+        isEnded:false,
+        candidates
+    });
+
+    alert("✅ Poll Created!");
+
+    window.location.href="vote.html?poll="+pollId;
+};
+</script>
+
+</body>
+</html>
