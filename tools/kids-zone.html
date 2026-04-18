@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kids Zone Ultra - JPTools</title>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+.container { padding:15px; }
+
+.grid {
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+}
+
+.box {
+    padding:15px;
+    background:#22c55e;
+    border-radius:10px;
+    font-size:18px;
+    cursor:pointer;
+}
+
+.section {
+    margin-top:20px;
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+}
+
+button {
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:5px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+canvas {
+    background:white;
+    border-radius:10px;
+    touch-action:none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.jpg" style="height:40px;">
+</a>
+<h2>🧸 Kids Zone Ultra</h2>
+</header>
+
+<div class="container">
+
+<!-- 🔤 ABC -->
+<div class="section">
+<h3>🔤 Alphabets</h3>
+<div class="grid" id="abc"></div>
+</div>
+
+<!-- 🔢 NUMBERS -->
+<div class="section">
+<h3>🔢 Numbers</h3>
+<div class="grid" id="numbers"></div>
+</div>
+
+<!-- 🎮 QUIZ -->
+<div class="section">
+<h3>🎯 Smart Quiz</h3>
+<div id="question">Click Start</div>
+<input id="answer" placeholder="Answer">
+<br>
+<button onclick="startQuiz()">Start</button>
+<button onclick="check()">Submit</button>
+<button onclick="voiceInput()">🎤 Speak</button>
+<div id="score"></div>
+</div>
+
+<!-- 🧠 MEMORY -->
+<div class="section">
+<h3>🧠 Memory Game</h3>
+<div class="grid" id="memory"></div>
+</div>
+
+<!-- 🎨 DRAW -->
+<div class="section">
+<h3>🖍️ Drawing</h3>
+<canvas id="draw" width="300" height="200"></canvas>
+<br>
+<button onclick="clearCanvas()">Clear</button>
+</div>
+
+</div>
+
+<script>
+
+// 🔊 SPEECH
+function speak(t){
+    speechSynthesis.speak(new SpeechSynthesisUtterance(t));
+}
+
+// 🔤 ABC
+const words={A:"🍎 Apple",B:"⚽ Ball",C:"🐱 Cat",D:"🐶 Dog",E:"🐘 Elephant",
+F:"🐟 Fish",G:"🐐 Goat",H:"🎩 Hat",I:"🍦 Ice cream",J:"🧃 Juice"};
+
+const abc=document.getElementById("abc");
+for(let i=65;i<=90;i++){
+let l=String.fromCharCode(i);
+let el=document.createElement("div");
+el.className="box";
+el.innerText=l;
+el.onclick=()=>speak(l+" for "+(words[l]||l));
+abc.appendChild(el);
+}
+
+// 🔢 NUMBERS
+const num=document.getElementById("numbers");
+for(let i=1;i<=30;i++){
+let el=document.createElement("div");
+el.className="box";
+el.innerText=i;
+el.onclick=()=>speak(i);
+num.appendChild(el);
+}
+
+// 🎮 QUIZ
+let answer,score=0;
+
+function startQuiz(){
+const questions=[
+{q:"2 + 2",a:"4"},
+{q:"A for ?",a:"Apple"},
+{q:"3 + 1",a:"4"},
+{q:"First letter?",a:"A"}
+];
+let r=questions[Math.floor(Math.random()*questions.length)];
+answer=r.a.toLowerCase();
+document.getElementById("question").innerText=r.q;
+}
+
+function check(){
+let user=document.getElementById("answer").value.toLowerCase();
+if(user==answer){score++;speak("Correct");}
+else speak("Wrong");
+document.getElementById("score").innerText="Score: "+score;
+}
+
+// 🎤 VOICE INPUT (SAFE VERSION)
+function voiceInput(){
+try{
+const rec=new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+rec.onresult=e=>{
+document.getElementById("answer").value=e.results[0][0].transcript;
+};
+rec.start();
+}catch{
+alert("Voice not supported");
+}
+}
+
+// 🧠 MEMORY
+const mem=document.getElementById("memory");
+let arr=["A","A","B","B","C","C","D","D"].sort(()=>Math.random()-0.5);
+let first=null;
+
+arr.forEach(v=>{
+let el=document.createElement("div");
+el.className="box";
+el.innerText="?";
+
+el.onclick=()=>{
+el.innerText=v;
+if(!first) first=el;
+else{
+if(first.innerText===el.innerText){speak("Match");}
+else{
+setTimeout(()=>{
+el.innerText="?";
+first.innerText="?";
+},500);
+}
+first=null;
+}
+};
+
+mem.appendChild(el);
+});
+
+// 🎨 DRAW (MOBILE + PC)
+const canvas=document.getElementById("draw");
+const ctx=canvas.getContext("2d");
+
+let draw=false;
+
+canvas.addEventListener("mousedown",()=>draw=true);
+canvas.addEventListener("mouseup",()=>draw=false);
+canvas.addEventListener("mousemove",drawLine);
+
+canvas.addEventListener("touchstart",()=>draw=true);
+canvas.addEventListener("touchend",()=>draw=false);
+canvas.addEventListener("touchmove",(e)=>{
+let rect=canvas.getBoundingClientRect();
+let x=e.touches[0].clientX-rect.left;
+let y=e.touches[0].clientY-rect.top;
+if(draw) ctx.fillRect(x,y,4,4);
+});
+
+function drawLine(e){
+if(draw) ctx.fillRect(e.offsetX,e.offsetY,4,4);
+}
+
+function clearCanvas(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+</script>
+
+</body>
+</html>
