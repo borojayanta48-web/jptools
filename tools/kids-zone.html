@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kids AI Pro - JPTools</title>
+
+<style>
+body {margin:0;font-family:Arial;background:#0f172a;color:white;text-align:center;}
+header {display:flex;align-items:center;gap:10px;padding:10px;background:#1e293b;}
+.container {padding:15px;}
+.section {margin-top:20px;background:#1e293b;padding:15px;border-radius:10px;}
+
+input, select {
+padding:10px;border-radius:5px;border:none;width:80%;
+}
+
+button {
+padding:10px;margin:5px;border:none;border-radius:5px;
+background:#22c55e;color:white;cursor:pointer;
+}
+
+#logoutBtn {background:#ef4444;}
+
+#chat {
+max-height:350px;
+overflow:auto;
+text-align:left;
+margin-top:10px;
+}
+
+.msg {
+margin:5px;
+padding:10px;
+border-radius:10px;
+}
+
+.user {background:#334155;}
+.ai {background:#22c55e;color:black;}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.jpg" style="height:40px;">
+</a>
+<h2>🤖 Kids AI Pro</h2>
+</header>
+
+<div class="container">
+
+<div class="section">
+
+<!-- 🔐 AUTH AREA -->
+<div id="authArea">
+<button id="loginBtn" onclick="login()">🔐 Login with Google</button>
+<button id="logoutBtn" onclick="logout()" style="display:none;">🚪 Logout</button>
+<div id="user"></div>
+</div>
+
+<br>
+
+<select id="mode">
+<option value="general">General</option>
+<option value="math">Math</option>
+<option value="english">English</option>
+<option value="gk">GK</option>
+</select>
+
+<br><br>
+
+<input id="input" placeholder="Ask anything...">
+
+<br>
+
+<button onclick="send()">Ask</button>
+<button onclick="voice()">🎤 Speak</button>
+<button onclick="exportChat()">📥 Export</button>
+
+<div id="chat"></div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+// 🔥 Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+getDatabase, ref, push, onValue
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+import {
+getAuth,
+GoogleAuthProvider,
+signInWithPopup,
+signOut,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+apiKey:"AIzaSyACzipenb7Sx0-XsNF8xiNCEE8uIeOsXuU",
+authDomain:"jayvox-be536.firebaseapp.com",
+databaseURL:"https://jayvox-be536-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId:"jayvox-be536",
+storageBucket:"jayvox-be536.firebasestorage.app",
+messagingSenderId:"427814511964",
+appId:"1:427814511964:web:e8a16e2e2275ef1d160d99"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth();
+
+let userId = null;
+let chatData = [];
+
+// 🔑 Gemini API
+const API_KEY = "AIzaSyCMWGWw2kw7OGHY3iSlXcWjTxHebjSsC6U";
+
+// 🔐 AUTO AUTH STATE
+onAuthStateChanged(auth, (user) => {
+if(user){
+    userId = user.uid;
+
+    document.getElementById("user").innerText =
+    "Logged in: " + user.displayName;
+
+    document.getElementById("loginBtn").style.display = "none";
+    document.getElementById("logoutBtn").style.display = "inline-block";
+
+    loadChat();
+
+}else{
+    userId = null;
+
+    document.getElementById("user").innerText = "";
+
+    document.getElementById("loginBtn").style.display = "inline-block";
+    document.getElementById("logoutBtn").style.display = "none";
+
+    document.getElementById("chat").innerHTML = "";
+}
+});
+
+// 🔐 LOGIN
+window.login = async function(){
+const provider = new GoogleAuthProvider();
+await signInWithPopup(auth, provider);
+};
+
+// 🔐 LOGOUT
+window.logout = async function(){
+await signOut(auth);
+alert("Logged out!");
+};
+
+// 💬 UI ADD
+function addMsg(text,cls){
+chatData.push(text);
+
+const div=document.createElement("div");
+div.className="msg "+cls;
+div.innerText=text;
+
+document.getElementById("chat").appendChild(div);
+}
+
+// 🧠 LOAD CHAT
+function loadChat(){
+
+onValue(ref(db,"kidsAI/"+userId),snap=>{
+document.getElementById("chat").innerHTML="";
+chatData = [];
+
+snap.forEach(d=>{
+addMsg(d.val().text,d.val().type);
+});
+});
+}
+
+// 📥 EXPORT
+window.exportChat = function(){
+let blob = new Blob([chatData.join("\n")], {type:"text/plain"});
+let a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "chat.txt";
+a.click();
+};
+
+// 🔊 SPEAK
+function speak(t){
+speechSynthesis.cancel();
+speechSynthesis.speak(new SpeechSynthesisUtterance(t));
+}
+
+// 🤖 AI SEND
+window.send = async function(){
+
+if(!userId){
+alert("Login first!");
+return;
+}
+
+const input=document.getElementById("input");
+const text=input.value.trim();
+const mode=document.getElementById("mode").value;
+
+if(!text) return;
+
+addMsg(text,"user");
+
+push(ref(db,"kidsAI/"+userId),{text,type:"user"});
+
+input.value="";
+
+// 🎯 MODE PROMPT
+let prompt = text;
+
+if(mode==="math") prompt="Solve for kids: "+text;
+if(mode==="english") prompt="Teach English simply for kids: "+text;
+if(mode==="gk") prompt="Explain general knowledge for kids: "+text;
+
+// 🤖 GEMINI CALL
+const res = await fetch(
+`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+contents:[{parts:[{text:prompt}]}]
+})
+});
+
+const data = await res.json();
+
+let reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Try again";
+
+addMsg(reply,"ai");
+
+push(ref(db,"kidsAI/"+userId),{text:reply,type:"ai"});
+
+speak(reply);
+};
+
+// 🎤 VOICE
+window.voice = function(){
+const rec=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+rec.onresult=e=>{
+document.getElementById("input").value=e.results[0][0].transcript;
+send();
+};
+rec.start();
+};
+
+</script>
+
+</body>
+</html>
