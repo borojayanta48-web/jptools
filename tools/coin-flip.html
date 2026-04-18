@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coin Flip - JPTools</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+.container{
+    padding:20px;
+}
+
+.coin{
+    width:150px;
+    height:150px;
+    border-radius:50%;
+    background:gold;
+    margin:20px auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    transition:transform 1s;
+}
+
+button{
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#16a34a;
+}
+
+.card{
+    background:#1e293b;
+    padding:15px;
+    margin-top:10px;
+    border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.png" style="height:40px;">
+</a>
+<h2>🪙 Coin Flip</h2>
+</header>
+
+<div class="container">
+
+<div id="coin" class="coin">?</div>
+
+<div>
+<button onclick="setGuess('Heads')">Heads</button>
+<button onclick="setGuess('Tails')">Tails</button>
+</div>
+
+<button onclick="flip()">🎯 Flip</button>
+
+<div class="card" id="result"></div>
+
+<div class="card">
+<h3>📊 Stats</h3>
+<div id="stats"></div>
+</div>
+
+<div class="card">
+<h3>⚡ Multi Flip</h3>
+<button onclick="multiFlip(10)">10</button>
+<button onclick="multiFlip(50)">50</button>
+<button onclick="multiFlip(100)">100</button>
+</div>
+
+<div class="card">
+<button onclick="resetStats()">🔁 Reset</button>
+<button onclick="toggleSound()">🔊 Sound</button>
+</div>
+
+</div>
+
+<script>
+
+let heads=0, tails=0, total=0;
+let guess=null;
+let streak=0;
+let sound=true;
+
+function setGuess(g){
+    guess=g;
+}
+
+function flip(){
+
+    const coin = document.getElementById("coin");
+    coin.style.transform="rotateY(720deg)";
+
+    setTimeout(()=>{
+
+        const res = Math.random()<0.5 ? "Heads" : "Tails";
+
+        coin.innerText = res === "Heads" ? "H" : "T";
+
+        total++;
+
+        if(res==="Heads") heads++;
+        else tails++;
+
+        let msg = `Result: ${res}`;
+
+        if(guess){
+            if(guess===res){
+                streak++;
+                msg += " ✅ You Win!";
+            } else {
+                streak=0;
+                msg += " ❌ You Lose!";
+            }
+        }
+
+        document.getElementById("result").innerHTML = msg;
+
+        updateStats();
+
+        if(sound){
+            new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg").play();
+        }
+
+    },500);
+}
+
+function updateStats(){
+
+    const hp = total ? ((heads/total)*100).toFixed(1) : 0;
+    const tp = total ? ((tails/total)*100).toFixed(1) : 0;
+
+    document.getElementById("stats").innerHTML = `
+    Total: ${total}<br>
+    Heads: ${heads} (${hp}%)<br>
+    Tails: ${tails} (${tp}%)<br>
+    🔥 Streak: ${streak}
+    `;
+}
+
+function multiFlip(n){
+    for(let i=0;i<n;i++){
+        const res = Math.random()<0.5 ? "Heads" : "Tails";
+        total++;
+        if(res==="Heads") heads++;
+        else tails++;
+    }
+    updateStats();
+    document.getElementById("result").innerText = `Flipped ${n} coins`;
+}
+
+function resetStats(){
+    heads=0; tails=0; total=0; streak=0;
+    updateStats();
+    document.getElementById("result").innerText="";
+}
+
+function toggleSound(){
+    sound=!sound;
+    alert(sound ? "Sound ON" : "Sound OFF");
+}
+
+updateStats();
+
+</script>
+
+</body>
+</html>
