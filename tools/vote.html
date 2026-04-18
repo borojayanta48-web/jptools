@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vote - JayVox</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+.card{
+    background:#1e293b;
+    margin:10px;
+    padding:15px;
+    border-radius:10px;
+}
+img{
+    width:80px;
+    border-radius:10px;
+}
+button{
+    padding:10px 20px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    color:white;
+}
+.note{
+    background:#334155;
+    padding:10px;
+    margin:15px;
+    border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🗳 Vote</h2>
+
+<button onclick="login()">🔐 Login</button>
+<div id="user"></div>
+
+<div id="poll"></div>
+
+<div class="note">
+⚠️ This is a fun public poll. Not official or legally valid.
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyACzipenb7Sx0-XsNF8xiNCEE8uIeOsXuU",
+  authDomain: "jayvox-be536.firebaseapp.com",
+  projectId: "jayvox-be536"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let user=null;
+
+window.login=async ()=>{
+    const provider=new GoogleAuthProvider();
+    const res=await signInWithPopup(auth,provider);
+    user=res.user;
+    document.getElementById("user").innerText="Logged in: "+user.displayName;
+};
+
+const params=new URLSearchParams(location.search);
+const pollId=params.get("poll");
+
+async function loadPoll(){
+    const snap=await getDoc(doc(db,"polls",pollId));
+    const data=snap.data();
+
+    document.getElementById("poll").innerHTML=data.candidates.map((c,i)=>`
+    <div class="card">
+        <h3>${c.emoji || ""} ${c.name}</h3>
+        ${c.img ? `<img src="${c.img}">` : ""}
+        <br>
+        <button onclick="vote(${i})">Vote</button>
+    </div>
+    `).join("");
+}
+
+window.vote = async (index)=>{
+    if(!user) return alert("Login first");
+
+    const ref=doc(db,"polls",pollId);
+
+    await updateDoc(ref,{
+        ["votes."+user.uid]: index
+    });
+
+    alert("✅ Vote submitted!");
+};
+
+loadPoll();
+</script>
+
+</body>
+</html>
