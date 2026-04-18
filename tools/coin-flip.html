@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coin Flip - JPTools</title>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+/* HEADER */
+header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#1e293b;
+}
+
+/* COIN */
+.coin-container {
+    perspective:1000px;
+    margin-top:30px;
+}
+
+.coin {
+    width:180px;
+    height:180px;
+    margin:auto;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform 1s;
+}
+
+.side {
+    position:absolute;
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background:gold;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    font-weight:bold;
+    backface-visibility:hidden;
+}
+
+.back {
+    transform:rotateY(180deg);
+}
+
+/* BUTTONS */
+button {
+    padding:12px 18px;
+    margin:8px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover {
+    background:#16a34a;
+}
+
+/* BOX */
+.box {
+    background:#1e293b;
+    margin:15px;
+    padding:15px;
+    border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<a href="../index.html">
+<img src="../images/logo.png" style="height:40px;">
+</a>
+<h2>🪙 Coin Flip</h2>
+</header>
+
+<div class="coin-container">
+    <div class="coin" id="coin">
+        <div class="side front">HEADS</div>
+        <div class="side back">TAILS</div>
+    </div>
+</div>
+
+<div>
+<button onclick="choose('Heads')">Heads</button>
+<button onclick="choose('Tails')">Tails</button>
+<br>
+<button onclick="flip()">🎯 Flip</button>
+<button onclick="reset()">🔁 Reset</button>
+</div>
+
+<div class="box" id="resultBox">Result: -</div>
+
+<div class="box">
+<h3>📊 Stats</h3>
+<div id="stats"></div>
+</div>
+
+<div class="box">
+<h3>📜 History (last 10)</h3>
+<div id="history"></div>
+</div>
+
+<script>
+
+let choice = null;
+let total = 0;
+let heads = 0;
+let tails = 0;
+let streak = 0;
+let lastResult = null;
+let historyArr = [];
+
+// 🎯 CHOOSE
+function choose(val){
+    choice = val;
+}
+
+// 🎲 FLIP (SINGLE SOURCE FIX)
+function flip(){
+
+    const result = Math.random() < 0.5 ? "Heads" : "Tails";
+
+    const coin = document.getElementById("coin");
+
+    // 🔥 animation based on result
+    if(result === "Heads"){
+        coin.style.transform = "rotateY(720deg)";
+    } else {
+        coin.style.transform = "rotateY(900deg)";
+    }
+
+    // wait for animation
+    setTimeout(()=>{
+
+        document.getElementById("resultBox").innerText = "Result: " + result;
+
+        // stats update
+        total++;
+        if(result === "Heads") heads++;
+        else tails++;
+
+        // streak logic
+        if(choice === result){
+            streak++;
+        } else {
+            streak = 0;
+        }
+
+        lastResult = result;
+
+        // history
+        historyArr.unshift(result);
+        if(historyArr.length > 10) historyArr.pop();
+
+        updateStats();
+
+    }, 1000);
+}
+
+// 📊 UPDATE STATS
+function updateStats(){
+
+    let hPerc = total ? ((heads/total)*100).toFixed(1) : 0;
+    let tPerc = total ? ((tails/total)*100).toFixed(1) : 0;
+
+    document.getElementById("stats").innerHTML = `
+    Total: ${total}<br>
+    Heads: ${heads} (${hPerc}%)<br>
+    Tails: ${tails} (${tPerc}%)<br>
+    🔥 Streak: ${streak}
+    `;
+
+    document.getElementById("history").innerText = historyArr.join(" | ");
+}
+
+// 🔁 RESET
+function reset(){
+    total = heads = tails = streak = 0;
+    historyArr = [];
+    choice = null;
+    lastResult = null;
+
+    document.getElementById("resultBox").innerText = "Result: -";
+    document.getElementById("stats").innerHTML = "";
+    document.getElementById("history").innerText = "";
+
+    document.getElementById("coin").style.transform = "rotateY(0deg)";
+}
+
+</script>
+
+</body>
+</html>
