@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "name": "Classic Movies",
+    "category": "Movies",
+    "icon": "🎬"
+  },
+  {
+    "id": 2,
+    "name": "Cartoon Time",
+    "category": "Cartoons",
+    "icon": "📺"
+  },
+  {
+    "id": 3,
+    "name": "Vintage Commercials",
+    "category": "Commercials",
+    "icon": "📢"
+  },
+  {
+    "id": 4,
+    "name": "Educational Films",
+    "category": "Educational Films",
+    "icon": "🎓"
+  }
+]
