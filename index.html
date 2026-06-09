@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ✅ BETTER TITLE -->
 <title>JayVox Hub | Tools, Games & Karaoke</title>
 
 <style>
@@ -14,8 +13,6 @@ body {
     background:#0f172a;
     color:white;
 }
-
-/* HEADER */
 header {
     display:flex;
     align-items:center;
@@ -26,8 +23,6 @@ header {
     top:0;
     z-index:100;
 }
-
-/* SEARCH */
 .search {
     padding:10px;
     width:90%;
@@ -35,32 +30,24 @@ header {
     border-radius:10px;
     border:none;
 }
-
-/* CATEGORY */
 .categories {
     display:flex;
     overflow-x:auto;
     gap:10px;
     padding:10px;
 }
-
 .cat {
     background:#1e293b;
     padding:8px 15px;
     border-radius:20px;
     cursor:pointer;
 }
-
-/* SECTION */
 .section {
     padding:15px;
 }
-
 .section h2 {
     margin-bottom:10px;
 }
-
-/* CARD */
 .card {
     display:flex;
     gap:10px;
@@ -71,15 +58,12 @@ header {
     text-decoration:none;
     color:white;
 }
-
 .card:hover {
     background:#22c55e;
 }
-
 .icon {
     font-size:30px;
 }
-
 .desc {
     font-size:12px;
     opacity:0.7;
@@ -91,11 +75,8 @@ header {
 
 <header>
 <a href="index.html">
-<!-- ✅ FIXED LOGO -->
 <img src="images/logo.jpg" style="height:40px;">
 </a>
-
-<!-- ✅ BETTER HEADER TEXT -->
 <h2>JayVox Hub</h2>
 </header>
 
@@ -109,7 +90,6 @@ header {
 <div class="cat" onclick="filter('fun')">Fun</div>
 </div>
 
-<!-- TOOLS -->
 <div class="section" data-cat="tools">
 <h2>🛠️ Tools</h2>
 
@@ -128,6 +108,15 @@ header {
 <div class="desc">Scientific + hidden game console</div>
 </div>
 </a>
+
+<a href="tools/livetv/livetv.html" class="card">
+<div class="icon">📺</div>
+<div>
+<b>JayVox TV</b>
+<div class="desc">Watch space, history, cartoons, documentaries & more</div>
+</div>
+</a>
+
 <a href="tools/create-poll.html" class="card">
 <div class="icon">🗳️</div>
 <div>
@@ -135,14 +124,15 @@ header {
 <div class="desc">Create and share your own voting poll</div>
 </div>
 </a>
- <a href="tools/admin.html" class="card">
+
+<a href="tools/admin.html" class="card">
 <div class="icon">📊</div>
 <div>
 <b>My Polls</b>
 <div class="desc">Manage your created polls</div>
 </div>
- </a>
-    
+</a>
+
 <a href="tools/ai-calculator.html" class="card">
 <div class="icon">🤖</div>
 <div>
@@ -150,6 +140,7 @@ header {
 <div class="desc">Step-by-step smart solving</div>
 </div>
 </a>
+
 <a href="tools/kids-zone.html" class="card">
 <div class="icon">🧸</div>
 <div>
@@ -157,7 +148,7 @@ header {
 <div class="desc">Fun learning, ABC, games & quizzes</div>
 </div>
 </a>
-    
+
 <a href="tools/word-tool.html" class="card">
 <div class="icon">📝</div>
 <div>
@@ -173,6 +164,7 @@ header {
 <div class="desc">Resize, compress & convert images</div>
 </div>
 </a>
+
 <a href="tools/world-time.html" class="card">
 <div class="icon">🌍</div>
 <div>
@@ -180,7 +172,7 @@ header {
 <div class="desc">Live global time + timezone tools</div>
 </div>
 </a>
-    
+
 <a href="tools/coin-flip.html" class="card">
 <div class="icon">🪙</div>
 <div>
@@ -191,7 +183,6 @@ header {
 
 </div>
 
-<!-- GAMES -->
 <div class="section" data-cat="games">
 <h2>🎮 Games</h2>
 
@@ -205,7 +196,6 @@ header {
 
 </div>
 
-<!-- FUN -->
 <div class="section" data-cat="fun">
 <h2>💬 Fun & Social</h2>
 
@@ -228,11 +218,8 @@ header {
 </div>
 
 <script>
-
-// ✅ CATEGORY FILTER
 function filter(type){
     const sections = document.querySelectorAll(".section");
-
     sections.forEach(sec=>{
         if(type === "all"){
             sec.style.display = "block";
@@ -242,7 +229,6 @@ function filter(type){
     });
 }
 
-// ✅ SEARCH FUNCTION
 document.getElementById("search").addEventListener("input", function(){
     const value = this.value.toLowerCase();
     const cards = document.querySelectorAll(".card");
@@ -252,7 +238,6 @@ document.getElementById("search").addEventListener("input", function(){
         card.style.display = text.includes(value) ? "flex" : "none";
     });
 });
-
 </script>
 
 </body>
