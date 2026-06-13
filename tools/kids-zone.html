@@ -38,6 +38,7 @@ input{padding:8px;border-radius:8px}
 <div class="tab" onclick="showPanel('reading')">📖 Reading</div>
 <div class="tab" onclick="showPanel('drawing')">🎨 Drawing</div>
 <div class="tab" onclick="showPanel('rewards')">🏆 Rewards</div>
+<div class="tab" onclick="showPanel('library')">📚 Kids Library</div>
 </div>
 
 <div id="alphabet" class="panel active">
@@ -107,7 +108,34 @@ input{padding:8px;border-radius:8px}
 <p>🎁 Stickers: <span id="stickers">0</span></p>
 <button onclick="resetProgress()">Reset Progress</button>
 </div>
+
+<div id="library" class="panel">
+<h2>📚 Kids Library</h2>
+
+<div class="card">
+<h3>📖 Story Books</h3>
+<p>Upload your PDF story books into:</p>
+<p><b>downloads/story-books/</b></p>
+<p>Add Read / Download links here later.</p>
+</div><br>
+
+<div class="card">
+<h3>📝 Poems</h3>
+<p>Upload poem PDFs into:</p>
+<p><b>downloads/poems/</b></p>
+<p>Add Read / Download links here later.</p>
+</div><br>
+
+<div class="card">
+<h3>🎨 Coloring Books</h3>
+<p>Upload coloring book PDFs into:</p>
+<p><b>downloads/coloring-books/</b></p>
+<p>Add Read / Download links here later.</p>
 </div>
+
+</div>
+</div>
+
 
 <script>
 function showPanel(id){
