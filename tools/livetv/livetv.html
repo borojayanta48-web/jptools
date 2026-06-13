@@ -3,57 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>JayVox TV v1.5</title>
+<title>JayVox TV v1.6</title>
 <style>
 body{margin:0;background:#0b1220;color:#fff;font-family:Arial,sans-serif}
-header{position:sticky;top:0;background:#111827;padding:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;z-index:10}
+header{background:#111827;padding:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:sticky;top:0}
 .btn{background:#2563eb;color:#fff;text-decoration:none;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
 .container{max-width:1400px;margin:auto;padding:15px}
-.search{width:100%;padding:12px;border:none;border-radius:10px}
-.hero{margin:15px 0;background:#1f2937;border-radius:16px;padding:20px}
-.hero h1{margin:0}
-.player{aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;margin-top:12px}
+.search{width:100%;padding:12px;border:none;border-radius:10px;margin-bottom:12px}
+.player{aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden}
 iframe{width:100%;height:100%;border:0}
-.rowtitle{margin:20px 0 10px}
-.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.section{margin-top:20px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
 .tab{background:#1f2937;padding:8px 12px;border-radius:20px;cursor:pointer}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 .card{background:#1f2937;border-radius:12px;overflow:hidden;cursor:pointer}
-.thumb{height:120px;display:flex;align-items:center;justify-content:center;font-size:42px;background:#374151}
-.card div{padding:10px}
-.small{opacity:.75;font-size:13px}
+.thumb{height:120px;display:flex;align-items:center;justify-content:center;font-size:40px;background:#374151}
+.meta{padding:10px}
+.small{font-size:12px;opacity:.75}
+#favoritesPanel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);padding:20px;overflow:auto}
+.favItem{background:#1f2937;padding:10px;border-radius:8px;margin:8px 0;cursor:pointer}
 </style>
 </head>
 <body>
-
 <header>
 <a class="btn" href="https://jayvox.in">🏠 Home</a>
 <button class="btn" onclick="randomVideo()">🎲 Surprise Me</button>
-<button class="btn" onclick="showFavorites()">⭐ Favorites</button>
+<button class="btn" onclick="toggleFavorites()">⭐ Favorites</button>
 </header>
 
 <div class="container">
-
 <input id="search" class="search" placeholder="Search videos...">
 
-<div class="hero">
-<h1>📺 JayVox TV</h1>
-<div id="featured">Featured: NASA Live Earth</div>
 <div class="player"><iframe id="player" allowfullscreen></iframe></div>
+
+<h2 id="title">JayVox TV</h2>
+<div id="category"></div>
+
+<div class="section">
+<h3>Continue Watching</h3>
+<div id="continueBox" class="small">Nothing watched yet.</div>
 </div>
 
-<h3 class="rowtitle">Categories</h3>
-<div class="tabs" id="tabs"></div>
+<div class="section">
+<h3>Categories</h3>
+<div id="tabs" class="tabs"></div>
+</div>
 
-<h3 class="rowtitle">Continue Watching</h3>
-<div id="continueBox" class="small">Your last watched video will appear here.</div>
+<div class="section">
+<h3>Recently Watched</h3>
+<div id="recentBox" class="small">No history yet.</div>
+</div>
 
-<h3 class="rowtitle">Trending</h3>
-<div class="grid" id="trending"></div>
+<div class="section">
+<h3>All Videos (<span id="count">0</span>)</h3>
+<div id="cards" class="grid"></div>
+</div>
+</div>
 
-<h3 class="rowtitle">All Videos</h3>
-<div class="grid" id="cards"></div>
-
+<div id="favoritesPanel">
+<h2>⭐ Favorite Videos</h2>
+<button class="btn" onclick="toggleFavorites()">Close</button>
+<div id="favoritesList"></div>
 </div>
 
 <script>
@@ -68,56 +78,86 @@ const videos=[
 {e:"🎮",t:"Gaming Documentary",c:"Gaming",u:"https://www.youtube.com/embed/GoyGlyrYkFo"},
 {e:"🎬",t:"Night of the Living Dead",c:"Movies",u:"https://archive.org/embed/night-of-the-living-dead-1968-english"},
 {e:"📺",t:"Popeye Cartoon",c:"Cartoons",u:"https://archive.org/embed/Popeye_forPresident"},
-{e:"🎓",t:"Duck and Cover",c:"Education",u:"https://archive.org/embed/DuckAndCover_201310"}
+{e:"🎓",t:"Duck and Cover",c:"Education",u:"https://archive.org/embed/DuckAndCover_201310"},
+{e:"🌊",t:"Ocean Life",c:"Nature",u:"https://www.youtube.com/embed/r9PeYPHdpNo"},
+{e:"🔭",t:"Moon Documentary",c:"Space",u:"https://www.youtube.com/embed/oSEf6FzG8N0"},
+{e:"🕹️",t:"Retro Gaming",c:"Gaming",u:"https://www.youtube.com/embed/Rv8Xb7Y4q6A"}
 ];
 
-const cats=["All",...new Set(videos.map(v=>v.c))];
+const categories=["All",...new Set(videos.map(v=>v.c))];
 let filter="All";
 
 function play(i){
 player.src=videos[i].u;
-featured.textContent="Featured: "+videos[i].t;
+title.textContent=videos[i].t;
+category.textContent="Category: "+videos[i].c;
 localStorage.setItem("jayvox-last",i);
+
+let recent=JSON.parse(localStorage.getItem("jayvox-recent")||"[]");
+recent=recent.filter(x=>x!==i);
+recent.unshift(i);
+recent=recent.slice(0,10);
+localStorage.setItem("jayvox-recent",JSON.stringify(recent));
+
+renderRecent();
 renderContinue();
 }
-function card(v,i){
-return `<div class="card" onclick="play(${i})"><div class="thumb">${v.e}</div><div><b>${v.t}</b><br><span class='small'>${v.c}</span></div></div>`;
-}
-function render(){
-const q=search.value.toLowerCase();
-cards.innerHTML="";
-videos.forEach((v,i)=>{
-if((filter==="All"||v.c===filter)&&v.t.toLowerCase().includes(q)){
-cards.innerHTML+=card(v,i);
-}
-});
-}
+
 function renderTabs(){
 tabs.innerHTML="";
-cats.forEach(c=>{
-tabs.innerHTML+=`<div class="tab" onclick="filter='${c}';render()">${c}</div>`;
+categories.forEach(c=>{
+tabs.innerHTML+=`<div class="tab" onclick="filter='${c}';render()">${c} (${videos.filter(v=>c==='All'||v.c===c).length})</div>`;
 });
 }
-function renderTrending(){
-trending.innerHTML="";
-videos.slice(0,6).forEach((v,i)=>trending.innerHTML+=card(v,i));
+
+function render(){
+let q=search.value.toLowerCase();
+cards.innerHTML="";
+let list=videos.filter(v=>(filter==="All"||v.c===filter)&&v.t.toLowerCase().includes(q));
+count.textContent=list.length;
+list.forEach(v=>{
+let i=videos.indexOf(v);
+cards.innerHTML+=`<div class="card" onclick="play(${i})" ondblclick="addFav(${i})">
+<div class="thumb">${v.e}</div>
+<div class="meta"><b>${v.t}</b><div class="small">${v.c}</div></div>
+</div>`;
+});
 }
+
+function addFav(i){
+let fav=JSON.parse(localStorage.getItem("jayvox-favorites")||"[]");
+if(!fav.includes(i)) fav.push(i);
+localStorage.setItem("jayvox-favorites",JSON.stringify(fav));
+}
+
+function toggleFavorites(){
+const p=document.getElementById("favoritesPanel");
+if(p.style.display==="block"){p.style.display="none";return;}
+let fav=JSON.parse(localStorage.getItem("jayvox-favorites")||"[]");
+favoritesList.innerHTML="";
+fav.forEach(i=>{
+favoritesList.innerHTML+=`<div class="favItem" onclick="play(${i});toggleFavorites()">${videos[i].t}</div>`;
+});
+p.style.display="block";
+}
+
 function renderContinue(){
-const last=localStorage.getItem("jayvox-last");
-if(last!==null){
-continueBox.innerHTML="Last watched: <b>"+videos[last].t+"</b>";
+let last=localStorage.getItem("jayvox-last");
+if(last!==null) continueBox.innerHTML="<b>"+videos[last].t+"</b>";
 }
+
+function renderRecent(){
+let recent=JSON.parse(localStorage.getItem("jayvox-recent")||"[]");
+recentBox.innerHTML=recent.length?recent.map(i=>videos[i].t).join(" • "):"No history yet.";
 }
+
 function randomVideo(){play(Math.floor(Math.random()*videos.length));}
-function showFavorites(){alert("Favorites system will expand in v1.6");}
 
 search.oninput=render;
 renderTabs();
-renderTrending();
 render();
 const last=localStorage.getItem("jayvox-last");
 play(last?Number(last):0);
 </script>
-
 </body>
 </html>
