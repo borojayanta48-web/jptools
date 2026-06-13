@@ -3,185 +3,178 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Kids Learning Zone 2.1</title>
+<title>Kids Learning Zone 2.2</title>
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:white}
+body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}
 header{background:#1e293b;padding:15px;text-align:center}
 .container{max-width:1200px;margin:auto;padding:15px}
-.tabs{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:15px}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:15px}
 .tab{background:#22c55e;padding:10px 14px;border-radius:10px;cursor:pointer}
 .panel{background:#1e293b;padding:15px;border-radius:15px;margin-bottom:15px}
 .hidden{display:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-.card{background:#334155;padding:15px;border-radius:12px;text-align:center;font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.card{background:#334155;padding:15px;border-radius:12px;text-align:center}
 button{background:#22c55e;color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer}
-input{padding:10px;border-radius:8px;border:none}
+canvas{background:white;border-radius:10px;touch-action:none}
 .big{font-size:42px}
 </style>
 </head>
 <body>
-
 <header>
-<h1>🧸 Kids Learning Zone 2.1</h1>
-<p>Learn • Play • Quiz • Draw • Achieve</p>
+<h1>🧸 Kids Learning Zone 2.2</h1>
+<p>Learn • Play • Quiz • Draw • Memory Game</p>
 </header>
 
 <div class="container">
-
 <div class="tabs">
-<div class="tab" onclick="showPanel('learn')">📚 Learn</div>
-<div class="tab" onclick="showPanel('games')">🎮 Games</div>
-<div class="tab" onclick="showPanel('quiz')">❓ Quiz</div>
-<div class="tab" onclick="showPanel('draw')">🎨 Draw</div>
-<div class="tab" onclick="showPanel('badges')">🏆 Badges</div>
+<div class="tab" onclick="showP('learn')">📚 Learn</div>
+<div class="tab" onclick="showP('animals')">🐶 Animals</div>
+<div class="tab" onclick="showP('abc')">🔤 ABC</div>
+<div class="tab" onclick="showP('memory')">🧩 Memory</div>
+<div class="tab" onclick="showP('quiz')">❓ Quiz</div>
+<div class="tab" onclick="showP('draw')">🎨 Draw</div>
 </div>
 
 <div id="learn" class="panel">
-<h2>📚 Learning Center</h2>
+<h2>Learning Center</h2>
 <div class="grid">
-<div class="card">🔤 A B C</div>
-<div class="card">🔢 1 2 3</div>
+<div class="card">🔢 Numbers</div>
 <div class="card">🎨 Colors</div>
 <div class="card">⬜ Shapes</div>
-<div class="card">🐶 Animals</div>
 <div class="card">🚗 Vehicles</div>
 <div class="card">🌍 Countries</div>
 <div class="card">🏳️ Flags</div>
 </div>
 </div>
 
-<div id="games" class="panel hidden">
-<h2>🎮 Number Challenge</h2>
-<p>Solve: <span id="n1"></span> + <span id="n2"></span></p>
-<input id="answer" type="number">
-<button onclick="checkMath()">Check</button>
-<p id="mathResult"></p>
+<div id="animals" class="panel hidden">
+<h2>🐶 Animal Gallery</h2>
+<div class="grid">
+<div class="card big">🐶<br>Dog</div>
+<div class="card big">🐱<br>Cat</div>
+<div class="card big">🦁<br>Lion</div>
+<div class="card big">🐘<br>Elephant</div>
+<div class="card big">🐵<br>Monkey</div>
+<div class="card big">🐼<br>Panda</div>
+</div>
+</div>
+
+<div id="abc" class="panel hidden">
+<h2>🔤 ABC Explorer</h2>
+<div class="card big" id="abcCard">A - Apple 🍎</div>
+<button onclick="nextABC()">Next Letter</button>
+</div>
+
+<div id="memory" class="panel hidden">
+<h2>🧩 Memory Match</h2>
+<p>Find the matching emojis!</p>
+<div id="memoryGrid" class="grid"></div>
 </div>
 
 <div id="quiz" class="panel hidden">
-<h2>❓ Quiz Zone</h2>
-<p id="question"></p>
-<button onclick="quizAnswer(true)">True</button>
-<button onclick="quizAnswer(false)">False</button>
-<p id="quizResult"></p>
-<p><b id="quizScore">Score: 0</b></p>
+<h2>❓ Quiz</h2>
+<p id="q"></p>
+<button onclick="ans(true)">True</button>
+<button onclick="ans(false)">False</button>
+<p id="qr"></p>
+<p id="score">Score: 0</p>
 </div>
 
 <div id="draw" class="panel hidden">
 <h2>🎨 Drawing Board</h2>
-<canvas id="canvas" width="300" height="300" style="background:white;border-radius:10px;touch-action:none;"></canvas>
-<br><br>
-<button onclick="clearCanvas()">Clear Drawing</button>
+<canvas id="cv" width="300" height="300"></canvas><br><br>
+<button onclick="clearCanvas()">Clear</button>
 </div>
-
-<div id="badges" class="panel hidden">
-<h2>🏆 Achievements</h2>
-<div id="badgeArea">
-⭐ Beginner Learner
-</div>
-</div>
-
 </div>
 
 <script>
-function showPanel(id){
-document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
+function showP(id){
+document.querySelectorAll('.panel').forEach(x=>x.classList.add('hidden'));
 document.getElementById(id).classList.remove('hidden');
 }
 
-// Math Game
-let a,b;
-function newMath(){
-a=Math.floor(Math.random()*10)+1;
-b=Math.floor(Math.random()*10)+1;
-n1.textContent=a;
-n2.textContent=b;
-answer.value='';
-}
-function checkMath(){
-if(parseInt(answer.value)===a+b){
-mathResult.textContent='🎉 Correct!';
-unlockBadge('➕ Math Star');
-}else{
-mathResult.textContent='❌ Try Again';
-}
-newMath();
-}
-newMath();
+// ABC
+const abc=[
+"A - Apple 🍎","B - Ball ⚽","C - Cat 🐱","D - Dog 🐶","E - Elephant 🐘",
+"F - Fish 🐟","G - Grapes 🍇","H - House 🏠"
+];
+let ai=0;
+function nextABC(){ai=(ai+1)%abc.length;abcCard.innerHTML=abc[ai];}
 
 // Quiz
-const questions=[
-{q:'The Sun is a star.',a:true},
-{q:'Cats are cars.',a:false},
-{q:'Earth is a planet.',a:true},
-{q:'Water helps life.',a:true},
-{q:'2+2=5',a:false}
+const qs=[
+{q:"The Sun is a star.",a:true},
+{q:"A cat is a vehicle.",a:false},
+{q:"Earth is a planet.",a:true}
 ];
-let qi=0;
-let score=0;
-
-function loadQuestion(){
-question.textContent=questions[qi].q;
+let qi=0,s=0;
+function loadQ(){q.textContent=qs[qi].q;}
+function ans(v){
+if(v===qs[qi].a){s++;qr.textContent="✅ Correct";}
+else{qr.textContent="❌ Wrong";}
+score.textContent="Score: "+s;
+qi=(qi+1)%qs.length;
+loadQ();
 }
-function quizAnswer(v){
-if(v===questions[qi].a){
-score++;
-quizResult.textContent='✅ Correct';
-unlockBadge('🧠 Quiz Master');
+loadQ();
+
+// Memory Game
+const emojis=["🐶","🐶","🐱","🐱","🦁","🦁","🐘","🐘"];
+emojis.sort(()=>Math.random()-0.5);
+let first=null,lock=false;
+function buildMemory(){
+memoryGrid.innerHTML="";
+emojis.forEach((e,i)=>{
+let d=document.createElement("div");
+d.className="card";
+d.textContent="❓";
+d.onclick=()=>flip(d,e);
+memoryGrid.appendChild(d);
+});
+}
+function flip(card,e){
+if(lock||card.dataset.done)return;
+card.textContent=e;
+if(!first){first={card,e};return;}
+if(first.e===e){
+card.dataset.done=1;
+first.card.dataset.done=1;
+first=null;
 }else{
-quizResult.textContent='❌ Wrong';
+lock=true;
+let old=first;
+setTimeout(()=>{
+card.textContent="❓";
+old.card.textContent="❓";
+first=null;
+lock=false;
+},700);
 }
-quizScore.textContent='Score: '+score;
-qi=(qi+1)%questions.length;
-loadQuestion();
 }
-loadQuestion();
+buildMemory();
 
-// Badges
-function unlockBadge(name){
-let badges=JSON.parse(localStorage.getItem('kidsBadges')||'[]');
-if(!badges.includes(name)){
-badges.push(name);
-localStorage.setItem('kidsBadges',JSON.stringify(badges));
-renderBadges();
-}
-}
-function renderBadges(){
-let badges=JSON.parse(localStorage.getItem('kidsBadges')||'[]');
-badgeArea.innerHTML='⭐ Beginner Learner<br>'+badges.join('<br>');
-}
-renderBadges();
-
-// Drawing Board
-const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
-let drawing=false;
-
-function start(e){drawing=true;draw(e);}
-function stop(){drawing=false;ctx.beginPath();}
-function draw(e){
-if(!drawing)return;
-const rect=canvas.getBoundingClientRect();
-const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
-const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+// Drawing
+const cv=document.getElementById("cv");
+const ctx=cv.getContext("2d");
+let draw=false;
+function start(e){draw=true;paint(e);}
+function stop(){draw=false;ctx.beginPath();}
+function paint(e){
+if(!draw)return;
+const r=cv.getBoundingClientRect();
+const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
 ctx.lineWidth=4;
-ctx.lineCap='round';
-ctx.lineTo(x,y);
-ctx.stroke();
-ctx.beginPath();
-ctx.moveTo(x,y);
+ctx.lineCap="round";
+ctx.lineTo(x,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y);
 }
-canvas.addEventListener('mousedown',start);
-canvas.addEventListener('mouseup',stop);
-canvas.addEventListener('mousemove',draw);
-canvas.addEventListener('touchstart',start);
-canvas.addEventListener('touchend',stop);
-canvas.addEventListener('touchmove',draw);
-
-function clearCanvas(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-}
+cv.addEventListener("mousedown",start);
+cv.addEventListener("mousemove",paint);
+cv.addEventListener("mouseup",stop);
+cv.addEventListener("touchstart",start);
+cv.addEventListener("touchmove",paint);
+cv.addEventListener("touchend",stop);
+function clearCanvas(){ctx.clearRect(0,0,cv.width,cv.height);}
 </script>
-
 </body>
 </html>
