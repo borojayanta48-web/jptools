@@ -1,78 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Kids Learning Zone 2.5</title>
+<title>Kids Learning Zone 2.6</title>
 <style>
-body{margin:0;background:#0f172a;color:#fff;font-family:Arial}
+body{margin:0;background:#0f172a;color:#fff;font-family:Arial,sans-serif}
 header{text-align:center;background:#1e293b;padding:15px}
 .container{max-width:1200px;margin:auto;padding:15px}
 .tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .tab{background:#22c55e;padding:10px 14px;border-radius:10px;cursor:pointer}
-.panel{background:#1e293b;padding:15px;border-radius:15px;margin-top:15px}
-.hidden{display:none}
+.panel{display:none;background:#1e293b;padding:15px;border-radius:15px;margin-top:15px}
+.active{display:block}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
 .card{background:#334155;padding:15px;border-radius:12px;text-align:center}
-button{background:#22c55e;color:#fff;border:none;padding:10px 14px;border-radius:10px}
-.big{font-size:38px}
-.progress{background:#334155;height:20px;border-radius:20px;overflow:hidden}
+button{background:#22c55e;color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer}
+.progress{height:20px;background:#334155;border-radius:20px;overflow:hidden}
 .bar{height:20px;background:#22c55e;width:0%}
+.big{font-size:36px}
 </style>
 </head>
 <body>
 <header>
-<h1>🧸 Kids Learning Zone 2.5</h1>
-<p>Learn • Play • Achieve • Explore</p>
+<h1>🧸 Kids Learning Zone 2.6</h1>
+<p>Learn • Play • Read • Earn Rewards</p>
 </header>
 
 <div class="container">
 <div class="tabs">
 <div class="tab" onclick="show('alphabet')">🔤 Alphabet</div>
 <div class="tab" onclick="show('animals')">🐶 Animals</div>
-<div class="tab" onclick="show('flags')">🌍 Flags</div>
 <div class="tab" onclick="show('colors')">🎨 Colors</div>
 <div class="tab" onclick="show('math')">🔢 Math</div>
-<div class="tab" onclick="show('achievements')">🏆 Achievements</div>
+<div class="tab" onclick="show('reading')">📚 Reading</div>
+<div class="tab" onclick="show('rewards')">🎁 Rewards</div>
 </div>
 
-<div id="alphabet" class="panel">
+<div id="alphabet" class="panel active">
 <h2>A-Z Explorer</h2>
 <div id="abc" class="card big">A - Apple 🍎</div><br>
-<button onclick="nextLetter()">Next</button>
+<button onclick="nextLetter()">Next Letter</button>
 </div>
 
-<div id="animals" class="panel hidden">
+<div id="animals" class="panel">
 <h2>Animal Gallery</h2>
 <div class="grid">
 <div class="card">🐶 Dog</div><div class="card">🐱 Cat</div><div class="card">🦁 Lion</div>
 <div class="card">🐘 Elephant</div><div class="card">🐵 Monkey</div><div class="card">🐼 Panda</div>
 <div class="card">🦒 Giraffe</div><div class="card">🐯 Tiger</div><div class="card">🦓 Zebra</div>
-<div class="card">🐧 Penguin</div><div class="card">🦉 Owl</div><div class="card">🐸 Frog</div>
 <div class="card">🦊 Fox</div><div class="card">🐨 Koala</div><div class="card">🐻 Bear</div>
+<div class="card">🐧 Penguin</div><div class="card">🦉 Owl</div><div class="card">🐸 Frog</div>
+<div class="card">🐰 Rabbit</div><div class="card">🐮 Cow</div><div class="card">🐴 Horse</div>
 </div>
 </div>
 
-<div id="flags" class="panel hidden">
-<h2>Flags Quiz</h2>
-<div id="flag" class="card big">🇮🇳</div><br>
-<button onclick="flagAns('India')">India</button>
-<button onclick="flagAns('Japan')">Japan</button>
-<button onclick="flagAns('USA')">USA</button>
-<button onclick="flagAns('Brazil')">Brazil</button>
-<p id="flagResult"></p>
-</div>
-
-<div id="colors" class="panel hidden">
+<div id="colors" class="panel">
 <h2>Color Match</h2>
 <div id="colorBox" style="height:100px;border-radius:12px"></div><br>
-<button onclick="pick('red')">Red</button>
-<button onclick="pick('green')">Green</button>
-<button onclick="pick('blue')">Blue</button>
+<button onclick="pickColor('red')">Red</button>
+<button onclick="pickColor('green')">Green</button>
+<button onclick="pickColor('blue')">Blue</button>
 <p id="colorResult"></p>
 </div>
 
-<div id="math" class="panel hidden">
+<div id="math" class="panel">
 <h2>Math Challenge</h2>
 <p><span id="m1"></span> + <span id="m2"></span> = ?</p>
 <input id="mathInput" type="number">
@@ -80,75 +71,100 @@ button{background:#22c55e;color:#fff;border:none;padding:10px 14px;border-radius
 <p id="mathResult"></p>
 </div>
 
-<div id="achievements" class="panel hidden">
-<h2>Achievements</h2>
+<div id="reading" class="panel">
+<h2>Reading Practice</h2>
+<div class="card">
+"The cat sat on the mat."
+</div><br>
+<button onclick="earn()">I Read It!</button>
+</div>
+
+<div id="rewards" class="panel">
+<h2>Rewards & Progress</h2>
 <div class="progress"><div id="bar" class="bar"></div></div>
 <p id="progressText">0%</p>
-<div id="badges">⭐ Beginner Explorer</div>
-<button onclick="resetProgress()">Reset Progress</button>
+<div id="badges">⭐ Beginner</div>
+<p>🎁 Stickers Collected: <span id="stickers">0</span></p>
+<button onclick="resetProgress()">Reset</button>
 </div>
 </div>
 
 <script>
 function show(id){
-document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
-document.getElementById(id).classList.remove('hidden');
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
 }
 
-let points=Number(localStorage.getItem('klz25')||0);
-function save(){localStorage.setItem('klz25',points);}
-function addPoint(){points++;save();renderProgress();}
+let points=Number(localStorage.getItem('klz26_points')||0);
+let stickersCount=Number(localStorage.getItem('klz26_stickers')||0);
+
+function save(){
+localStorage.setItem('klz26_points',points);
+localStorage.setItem('klz26_stickers',stickersCount);
+}
+
+function earn(){
+points++;
+if(points%5===0) stickersCount++;
+save();
+renderProgress();
+}
 
 function renderProgress(){
 let pct=Math.min(points*3,100);
 bar.style.width=pct+'%';
 progressText.textContent=pct+'% Complete';
-let b=['⭐ Beginner Explorer'];
-if(points>=5)b.push('🔤 Alphabet Master');
-if(points>=10)b.push('🎨 Color Wizard');
-if(points>=15)b.push('🌍 Flag Explorer');
-if(points>=20)b.push('🔢 Math Champion');
-if(points>=25)b.push('🏆 Super Learner');
+stickers.textContent=stickersCount;
+
+let b=['⭐ Beginner'];
+if(points>=5) b.push('🔤 Alphabet Master');
+if(points>=10) b.push('🎨 Color Wizard');
+if(points>=15) b.push('🔢 Math Champion');
+if(points>=20) b.push('📚 Reading Hero');
+if(points>=25) b.push('🏆 Super Learner');
 badges.innerHTML=b.join('<br>');
 }
-function resetProgress(){points=0;save();renderProgress();}
 
-const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-let li=0;
-function nextLetter(){
-abc.innerHTML=letters[li]+" Letter";
-li=(li+1)%letters.length;
-addPoint();
+function resetProgress(){
+points=0; stickersCount=0; save(); renderProgress();
 }
 
-const flags=[['🇮🇳','India'],['🇯🇵','Japan'],['🇺🇸','USA'],['🇧🇷','Brazil']];
-let fi=0;
-function loadFlag(){flag.textContent=flags[fi][0];}
-function flagAns(v){
-flagResult.textContent=v===flags[fi][1]?'✅ Correct':'❌ Wrong';
-if(v===flags[fi][1]) addPoint();
-fi=(fi+1)%flags.length;
-loadFlag();
+const letters=["A-Apple 🍎","B-Ball ⚽","C-Cat 🐱","D-Dog 🐶","E-Elephant 🐘","F-Fish 🐟","G-Grapes 🍇"];
+let li=0;
+function nextLetter(){
+abc.textContent=letters[li];
+li=(li+1)%letters.length;
+earn();
 }
 
 const colors=['red','green','blue'];
 let current='red';
-function newColor(){current=colors[Math.floor(Math.random()*colors.length)];colorBox.style.background=current;}
-function pick(c){
-colorResult.textContent=c===current?'✅ Correct':'❌ Wrong';
-if(c===current) addPoint();
+function newColor(){
+current=colors[Math.floor(Math.random()*colors.length)];
+colorBox.style.background=current;
+}
+function pickColor(c){
+colorResult.textContent=(c===current)?'✅ Correct':'❌ Wrong';
+if(c===current) earn();
 newColor();
 }
 
 let a,b;
-function newMath(){a=Math.floor(Math.random()*10)+1;b=Math.floor(Math.random()*10)+1;m1.textContent=a;m2.textContent=b;}
+function newMath(){
+a=Math.floor(Math.random()*10)+1;
+b=Math.floor(Math.random()*10)+1;
+m1.textContent=a;m2.textContent=b;
+}
 function checkMath(){
-mathResult.textContent=Number(mathInput.value)===a+b?'✅ Correct':'❌ Wrong';
-if(Number(mathInput.value)===a+b) addPoint();
-mathInput.value='';newMath();
+if(Number(mathInput.value)===a+b){mathResult.textContent='✅ Correct'; earn();}
+else mathResult.textContent='❌ Wrong';
+mathInput.value='';
+newMath();
 }
 
-loadFlag();newColor();newMath();renderProgress();
+newColor();
+newMath();
+renderProgress();
 </script>
 </body>
 </html>
