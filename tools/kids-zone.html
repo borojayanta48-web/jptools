@@ -3,191 +3,182 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Kids Learning Zone Ultimate</title>
+<title>Kids Learning Zone Ultimate Edition</title>
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}
+body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
 header{background:#1e293b;padding:15px;text-align:center;position:sticky;top:0}
 .container{max-width:1200px;margin:auto;padding:15px}
 .tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .tab{background:#22c55e;padding:10px 14px;border-radius:10px;cursor:pointer}
 .panel{display:none;background:#1e293b;padding:15px;border-radius:15px;margin-top:15px}
 .active{display:block}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
 .card{background:#334155;padding:12px;border-radius:12px;text-align:center}
-button{background:#22c55e;color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+button{background:#22c55e;color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;margin:4px}
+canvas{background:#fff;border-radius:10px;touch-action:none}
 .progress{height:20px;background:#334155;border-radius:20px;overflow:hidden}
 .bar{height:20px;background:#22c55e;width:0%}
-canvas{background:#fff;border-radius:10px;touch-action:none}
-.big{font-size:36px}
+.big{font-size:40px}
 </style>
 </head>
 <body>
 <header>
-<h1>🧸 Kids Learning Zone Ultimate</h1>
-<p>Learn • Play • Read • Draw • Earn Rewards</p>
-<button onclick="toggleSound()">🔊 Sound On/Off</button>
+<h1>🧸 Kids Learning Zone Ultimate Edition</h1>
+<p>Learn • Play • Read • Draw • Speak • Earn Rewards</p>
 </header>
 
 <div class="container">
 <div class="tabs">
-<div class="tab" onclick="show('learn')">📚 Learn</div>
-<div class="tab" onclick="show('animals')">🐶 Animals</div>
-<div class="tab" onclick="show('flags')">🌍 Flags</div>
-<div class="tab" onclick="show('games')">🎮 Games</div>
-<div class="tab" onclick="show('reading')">📖 Reading</div>
-<div class="tab" onclick="show('draw')">🎨 Draw</div>
-<div class="tab" onclick="show('rewards')">🏆 Rewards</div>
+<div class="tab" onclick="showPanel('alphabet')">🔤 Alphabet</div>
+<div class="tab" onclick="showPanel('animals')">🐶 Animals</div>
+<div class="tab" onclick="showPanel('flags')">🌍 Flags</div>
+<div class="tab" onclick="showPanel('games')">🎮 Games</div>
+<div class="tab" onclick="showPanel('reading')">📖 Reading</div>
+<div class="tab" onclick="showPanel('draw')">🎨 Draw</div>
+<div class="tab" onclick="showPanel('rewards')">🏆 Rewards</div>
 </div>
 
-<div id="learn" class="panel active">
-<h2>A-Z Explorer</h2>
-<div id="abc" class="card big">A - Apple 🍎</div><br>
-<button onclick="nextLetter()">Next Letter</button>
+<div id="alphabet" class="panel active">
+<h2>Alphabet Explorer with Voice</h2>
+<div id="emoji" class="card big">🍎</div>
+<h2 id="letter">A</h2>
+<h3 id="word">Apple</h3>
+<button onclick="speakCurrent()">🔊 Speak</button>
+<button onclick="prevLetter()">⬅ Previous</button>
+<button onclick="nextLetter()">Next ➡</button>
 </div>
 
 <div id="animals" class="panel">
-<h2>30+ Animal Gallery</h2>
+<h2>30 Animal Gallery</h2>
 <div class="grid" id="animalGrid"></div>
 </div>
 
 <div id="flags" class="panel">
 <h2>Flags Quiz</h2>
 <div id="flagCard" class="card big">🇮🇳</div><br>
-<button onclick="flagAns('India')">India</button>
-<button onclick="flagAns('Japan')">Japan</button>
-<button onclick="flagAns('USA')">USA</button>
-<button onclick="flagAns('Brazil')">Brazil</button>
+<button onclick="flagGuess('India')">India</button>
+<button onclick="flagGuess('Japan')">Japan</button>
+<button onclick="flagGuess('USA')">USA</button>
+<button onclick="flagGuess('Brazil')">Brazil</button>
 <p id="flagResult"></p>
 </div>
 
 <div id="games" class="panel">
-<h2>Mini Games</h2>
-<p><b>Color Match</b></p>
+<h2>Color Match</h2>
 <div id="colorBox" style="height:80px;border-radius:10px"></div><br>
 <button onclick="pickColor('red')">Red</button>
 <button onclick="pickColor('green')">Green</button>
 <button onclick="pickColor('blue')">Blue</button>
 <p id="colorResult"></p>
 
-<hr>
-<p><b>Math Challenge</b></p>
+<h2>Math Challenge</h2>
 <p><span id="m1"></span> + <span id="m2"></span> = ?</p>
 <input id="mathInput" type="number">
 <button onclick="checkMath()">Check</button>
 <p id="mathResult"></p>
+
+<h2>Animal Guess</h2>
+<div id="guessAnimal" class="card big">🐶</div>
+<button onclick="animalGuess('Dog')">Dog</button>
+<button onclick="animalGuess('Cat')">Cat</button>
+<button onclick="animalGuess('Lion')">Lion</button>
+<p id="animalResult"></p>
 </div>
 
 <div id="reading" class="panel">
 <h2>Reading Stories</h2>
-<div class="card">🐱 The cat sat on the mat and watched the sun shine.</div><br>
-<div class="card">🐶 The dog ran through the park and made new friends.</div><br>
+<div class="card">🐱 The cat sat on the mat.</div><br>
+<div class="card">🐶 The dog ran through the park.</div><br>
+<div class="card">🦁 The lion rested under a tree.</div><br>
 <button onclick="earn()">I Read These Stories!</button>
 </div>
 
 <div id="draw" class="panel">
 <h2>Drawing Board</h2>
-<canvas id="cv" width="320" height="320"></canvas><br><br>
+<canvas id="cv" width="320" height="320"></canvas><br>
 <button onclick="clearCanvas()">Clear Drawing</button>
 </div>
 
 <div id="rewards" class="panel">
-<h2>Progress & Stickers</h2>
+<h2>Rewards</h2>
 <div class="progress"><div id="bar" class="bar"></div></div>
 <p id="progressText">0%</p>
 <div id="badges">⭐ Beginner Explorer</div>
 <p>🎁 Stickers: <span id="stickers">0</span></p>
 <button onclick="resetProgress()">Reset Progress</button>
 </div>
+
 </div>
 
 <script>
-let sound=true;
-function beep(freq=440){
- if(!sound) return;
- const a=new(window.AudioContext||window.webkitAudioContext)();
- const o=a.createOscillator(); const g=a.createGain();
- o.connect(g); g.connect(a.destination);
- o.frequency.value=freq; o.start();
- g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.15);
- o.stop(a.currentTime+0.15);
-}
-function toggleSound(){sound=!sound;}
-
-function show(id){
- document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
- document.getElementById(id).classList.add('active');
+function showPanel(id){
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
 }
 
-let points=Number(localStorage.getItem('klu_points')||0);
-let stickerCount=Number(localStorage.getItem('klu_stickers')||0);
+let points=+localStorage.getItem('kidsUltimatePoints')||0;
+let stickersCount=+localStorage.getItem('kidsUltimateStickers')||0;
 
-function save(){
- localStorage.setItem('klu_points',points);
- localStorage.setItem('klu_stickers',stickerCount);
+function save(){localStorage.setItem('kidsUltimatePoints',points);localStorage.setItem('kidsUltimateStickers',stickersCount);}
+function earn(){points++;if(points%5===0)stickersCount++;save();renderRewards();}
+function renderRewards(){
+let pct=Math.min(points*2,100);
+bar.style.width=pct+'%';
+progressText.textContent=pct+'% Complete';
+stickers.textContent=stickersCount;
+let b=['⭐ Beginner Explorer'];
+if(points>=5)b.push('🔤 Alphabet Master');
+if(points>=10)b.push('🎨 Color Wizard');
+if(points>=15)b.push('🌍 Flag Explorer');
+if(points>=20)b.push('📖 Reading Hero');
+if(points>=25)b.push('🦁 Animal Expert');
+if(points>=30)b.push('🏆 Super Learner');
+badges.innerHTML=b.join('<br>');
 }
-function earn(){
- points++;
- if(points%5===0) stickerCount++;
- save(); render();
- beep(700);
-}
-function render(){
- let pct=Math.min(points*2,100);
- bar.style.width=pct+'%';
- progressText.textContent=pct+'% Complete';
- stickers.textContent=stickerCount;
- let b=['⭐ Beginner Explorer'];
- if(points>=5)b.push('🔤 Alphabet Master');
- if(points>=10)b.push('🎨 Color Wizard');
- if(points>=15)b.push('🌍 Flag Explorer');
- if(points>=20)b.push('📖 Reading Hero');
- if(points>=25)b.push('🔢 Math Champion');
- if(points>=30)b.push('🏆 Super Learner');
- badges.innerHTML=b.join('<br>');
-}
-function resetProgress(){points=0;stickerCount=0;save();render();}
+function resetProgress(){points=0;stickersCount=0;save();renderRewards();}
 
-const letters=["A Apple 🍎","B Ball ⚽","C Cat 🐱","D Dog 🐶","E Elephant 🐘","F Fish 🐟","G Grapes 🍇","H House 🏠","I Ice Cream 🍦","J Juice 🧃","K Kite 🪁","L Lion 🦁","M Monkey 🐵","N Nest 🪺","O Owl 🦉","P Panda 🐼","Q Queen 👑","R Rabbit 🐰","S Sun ☀️","T Tiger 🐯","U Umbrella ☂️","V Van 🚐","W Whale 🐋","X Xylophone 🎼","Y Yak 🦬","Z Zebra 🦓"];
-let li=0;
-function nextLetter(){abc.textContent=letters[li];li=(li+1)%letters.length;earn();}
+// Alphabet voice
+const items=[["A","Apple","🍎"],["B","Ball","⚽"],["C","Cat","🐱"],["D","Dog","🐶"],["E","Elephant","🐘"],["F","Fish","🐟"],["G","Grapes","🍇"],["H","House","🏠"],["I","Ice Cream","🍦"],["J","Juice","🧃"],["K","Kite","🪁"],["L","Lion","🦁"],["M","Monkey","🐵"],["N","Nest","🪺"],["O","Owl","🦉"],["P","Panda","🐼"],["Q","Queen","👑"],["R","Rabbit","🐰"],["S","Sun","☀️"],["T","Tiger","🐯"],["U","Umbrella","☂️"],["V","Van","🚐"],["W","Whale","🐋"],["X","Xylophone","🎼"],["Y","Yak","🦬"],["Z","Zebra","🦓"]];
+let idx=0;
+function drawLetter(){letter.textContent=items[idx][0];word.textContent=items[idx][1];emoji.textContent=items[idx][2];}
+function speakCurrent(){speechSynthesis.speak(new SpeechSynthesisUtterance(items[idx][0]+" for "+items[idx][1]));}
+function nextLetter(){idx=(idx+1)%items.length;drawLetter();earn();speakCurrent();}
+function prevLetter(){idx=(idx-1+items.length)%items.length;drawLetter();speakCurrent();}
 
+// Animals
 const animals=["🐶 Dog","🐱 Cat","🦁 Lion","🐘 Elephant","🐵 Monkey","🐼 Panda","🦒 Giraffe","🐯 Tiger","🦓 Zebra","🐧 Penguin","🦉 Owl","🐸 Frog","🦊 Fox","🐨 Koala","🐻 Bear","🐮 Cow","🐴 Horse","🐰 Rabbit","🐭 Mouse","🦌 Deer","🐺 Wolf","🐗 Boar","🦔 Hedgehog","🐹 Hamster","🐷 Pig","🐑 Sheep","🐐 Goat","🐪 Camel","🦬 Bison","🐬 Dolphin"];
 animalGrid.innerHTML=animals.map(a=>'<div class="card">'+a+'</div>').join('');
 
-const flags=[["🇮🇳","India"],["🇯🇵","Japan"],["🇺🇸","USA"],["🇧🇷","Brazil"]];
-let fi=0;
+// Flags
+const flags=[["🇮🇳","India"],["🇯🇵","Japan"],["🇺🇸","USA"],["🇧🇷","Brazil"]]; let fi=0;
 function loadFlag(){flagCard.textContent=flags[fi][0];}
-function flagAns(v){
- if(v===flags[fi][1]){flagResult.textContent='✅ Correct';earn();}
- else {flagResult.textContent='❌ Wrong';beep(220);}
- fi=(fi+1)%flags.length; loadFlag();
-}
+function flagGuess(v){flagResult.textContent=v===flags[fi][1]?'✅ Correct':'❌ Wrong'; if(v===flags[fi][1]) earn(); fi=(fi+1)%flags.length; loadFlag();}
 
+// Color game
 const colors=['red','green','blue']; let current='red';
 function newColor(){current=colors[Math.floor(Math.random()*colors.length)];colorBox.style.background=current;}
-function pickColor(c){
- if(c===current){colorResult.textContent='✅ Correct';earn();}
- else {colorResult.textContent='❌ Wrong';beep(220);}
- newColor();
-}
+function pickColor(c){colorResult.textContent=c===current?'✅ Correct':'❌ Wrong'; if(c===current) earn(); newColor();}
 
+// Math
 let a,b;
 function newMath(){a=Math.floor(Math.random()*10)+1;b=Math.floor(Math.random()*10)+1;m1.textContent=a;m2.textContent=b;}
-function checkMath(){
- if(Number(mathInput.value)===a+b){mathResult.textContent='✅ Correct';earn();}
- else {mathResult.textContent='❌ Wrong';beep(220);}
- mathInput.value=''; newMath();
-}
+function checkMath(){mathResult.textContent=Number(mathInput.value)===a+b?'✅ Correct':'❌ Wrong'; if(Number(mathInput.value)===a+b) earn(); mathInput.value=''; newMath();}
 
-const cv=document.getElementById('cv'),ctx=cv.getContext('2d'); let d=false;
-function pos(e){const r=cv.getBoundingClientRect();return{x:(e.touches?e.touches[0].clientX:e.clientX)-r.left,y:(e.touches?e.touches[0].clientY:e.clientY)-r.top};}
-function start(e){d=true;draw(e);} function stop(){d=false;ctx.beginPath();}
-function draw(e){if(!d)return;let p=pos(e);ctx.lineWidth=4;ctx.lineCap='round';ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);}
-cv.addEventListener('mousedown',start);cv.addEventListener('mousemove',draw);cv.addEventListener('mouseup',stop);
-cv.addEventListener('touchstart',start);cv.addEventListener('touchmove',draw);cv.addEventListener('touchend',stop);
+// Animal guess
+const guesses=[["🐶","Dog"],["🐱","Cat"],["🦁","Lion"]]; let gi=0;
+function loadAnimal(){guessAnimal.textContent=guesses[gi][0];}
+function animalGuess(v){animalResult.textContent=v===guesses[gi][1]?'✅ Correct':'❌ Wrong'; if(v===guesses[gi][1]) earn(); gi=(gi+1)%guesses.length; loadAnimal();}
+
+// Drawing
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d'); let drawing=false;
+function pos(e){const r=cv.getBoundingClientRect(); return {x:(e.touches?e.touches[0].clientX:e.clientX)-r.left,y:(e.touches?e.touches[0].clientY:e.clientY)-r.top};}
+function start(e){drawing=true;paint(e);} function stop(){drawing=false;ctx.beginPath();}
+function paint(e){if(!drawing)return; let p=pos(e); ctx.lineWidth=4; ctx.lineCap='round'; ctx.lineTo(p.x,p.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p.x,p.y);}
+cv.addEventListener('mousedown',start);cv.addEventListener('mousemove',paint);cv.addEventListener('mouseup',stop);
+cv.addEventListener('touchstart',start);cv.addEventListener('touchmove',paint);cv.addEventListener('touchend',stop);
 function clearCanvas(){ctx.clearRect(0,0,cv.width,cv.height);}
 
-loadFlag(); newColor(); newMath(); render();
+drawLetter(); loadFlag(); newColor(); newMath(); loadAnimal(); renderRewards();
 </script>
 </body>
 </html>
