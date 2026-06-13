@@ -2,81 +2,116 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kids AI Pro</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Kids Learning Zone 2.0</title>
 <style>
-body {
-    margin:0;
-    font-family: Arial;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    color:white;
-    text-align:center;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-.logo {
-    height:60px;
-    margin-bottom:10px;
-}
-
-h1 {
-    font-size:28px;
-    margin:10px 0;
-}
-
-p {
-    color:#94a3b8;
-    max-width:300px;
-}
-
-.box {
-    background: rgba(51,65,85,0.8);
-    padding:30px;
-    border-radius:15px;
-    box-shadow:0 0 20px rgba(0,0,0,0.3);
-}
-
-.badge {
-    margin-top:15px;
-    padding:8px 15px;
-    background:#22c55e;
-    border-radius:20px;
-    display:inline-block;
-    font-size:14px;
-}
-
-a {
-    display:block;
-    margin-top:20px;
-    color:#38bdf8;
-    text-decoration:none;
-}
+body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}
+header{padding:15px;text-align:center;background:#1e293b}
+.container{padding:15px;max-width:1200px;margin:auto}
+.tabs{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:15px 0}
+.tab{background:#22c55e;color:#fff;padding:10px 15px;border-radius:10px;cursor:pointer}
+.panel{background:#1e293b;padding:15px;border-radius:15px;margin-bottom:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.card{background:#334155;padding:15px;border-radius:12px;text-align:center}
+button{background:#22c55e;color:#fff;border:none;padding:10px 15px;border-radius:10px;cursor:pointer}
+.hidden{display:none}
+#score{font-size:20px;font-weight:bold}
 </style>
 </head>
-
 <body>
 
-<div class="box">
+<header>
+<h1>🧸 Kids Learning Zone 2.0</h1>
+<p>Learn • Play • Quiz • Have Fun</p>
+</header>
 
-<img src="images/logo.jpg" class="logo">
+<div class="container">
 
-<h1>🤖 Kids AI Pro</h1>
+<div class="tabs">
+<div class="tab" onclick="show('learn')">📚 Learn</div>
+<div class="tab" onclick="show('games')">🎮 Games</div>
+<div class="tab" onclick="show('quiz')">❓ Quiz</div>
+</div>
 
-<p>
-A smart learning AI for kids is coming soon!  
-We are building something amazing 🚀
-</p>
+<div id="learn" class="panel">
+<h2>📚 Learning Center</h2>
+<div class="grid">
+<div class="card">🔤 ABC</div>
+<div class="card">🔢 Numbers</div>
+<div class="card">🎨 Colors</div>
+<div class="card">⬜ Shapes</div>
+<div class="card">🐶 Animals</div>
+<div class="card">🚗 Vehicles</div>
+<div class="card">🌍 Countries</div>
+<div class="card">🏳️ Flags</div>
+</div>
+</div>
 
-<div class="badge">🚧 Coming Soon</div>
+<div id="games" class="panel hidden">
+<h2>🎮 Number Challenge</h2>
+<p>What is <span id="a"></span> + <span id="b"></span> ?</p>
+<input id="ans" type="number">
+<button onclick="checkGame()">Check</button>
+<p id="gameResult"></p>
+</div>
 
-<a href="../index.html">⬅ Back to Home</a>
+<div id="quiz" class="panel hidden">
+<h2>❓ Quiz Zone</h2>
+<p id="question"></p>
+<button onclick="answer(true)">True</button>
+<button onclick="answer(false)">False</button>
+<p id="quizResult"></p>
+<p id="score">Score: 0</p>
+</div>
 
 </div>
+
+<script>
+function show(id){
+document.querySelectorAll('.panel').forEach(x=>x.classList.add('hidden'));
+document.getElementById(id).classList.remove('hidden');
+}
+
+let n1,n2;
+function newGame(){
+n1=Math.floor(Math.random()*10)+1;
+n2=Math.floor(Math.random()*10)+1;
+a.textContent=n1;
+b.textContent=n2;
+ans.value='';
+}
+function checkGame(){
+let v=parseInt(ans.value);
+gameResult.textContent=(v===n1+n2)?'🎉 Correct!':'❌ Try Again';
+newGame();
+}
+newGame();
+
+const questions=[
+{q:'The Sun is a star.',a:true},
+{q:'2 + 2 = 5',a:false},
+{q:'Dogs can fly naturally.',a:false},
+{q:'Water is important for life.',a:true},
+{q:'Earth is a planet.',a:true}
+];
+
+let qi=0,score=0;
+function loadQ(){
+question.textContent=questions[qi].q;
+}
+function answer(v){
+if(v===questions[qi].a){
+score++;
+quizResult.textContent='✅ Correct';
+}else{
+quizResult.textContent='❌ Wrong';
+}
+score.innerText='Score: '+score;
+qi=(qi+1)%questions.length;
+loadQ();
+}
+loadQ();
+</script>
 
 </body>
 </html>
