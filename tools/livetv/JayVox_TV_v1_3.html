@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>JayVox TV v1.3</title>
+<style>
+body{margin:0;background:#0f1117;color:#fff;font-family:Arial,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:14px;background:#161b22;position:sticky;top:0}
+a,button{background:#2563eb;color:#fff;border:none;padding:10px 14px;border-radius:8px;text-decoration:none;cursor:pointer}
+.container{max-width:1300px;margin:auto;padding:15px}
+.search{width:100%;padding:12px;border:none;border-radius:10px;margin-bottom:12px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.tab{background:#222;padding:8px 12px;border-radius:20px;cursor:pointer}
+.player{aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden}
+iframe{width:100%;height:100%;border:0}
+.info{text-align:center;padding:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.card{background:#1b1f2a;padding:12px;border-radius:12px;cursor:pointer}
+.card:hover{transform:translateY(-2px)}
+.small{opacity:.75;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+<a href="https://jayvox.in">🏠 Home</a>
+<button onclick="randomVideo()">🎲 Surprise Me</button>
+<button onclick="showFavorites()">⭐ Favorites</button>
+<button onclick="toggleFullscreen()">⛶ Fullscreen</button>
+</header>
+
+<div class="container">
+<input id="search" class="search" placeholder="Search videos...">
+<div class="tabs" id="tabs"></div>
+
+<div class="player"><iframe id="player" allowfullscreen></iframe></div>
+
+<div class="info">
+<h2 id="title"></h2>
+<div id="category"></div>
+<div id="count" class="small"></div>
+</div>
+
+<div class="cards" id="cards"></div>
+</div>
+
+<script>
+const videos=[
+{title:"NASA Live Earth",category:"Space",embed:"https://www.youtube.com/embed/DDU-rZs-Ic4"},
+{title:"Artemis Mission",category:"Space",embed:"https://www.youtube.com/embed/21X5lGlDOfg"},
+{title:"Moon Documentary",category:"Space",embed:"https://www.youtube.com/embed/oSEf6FzG8N0"},
+
+{title:"Ancient Civilizations",category:"History",embed:"https://www.youtube.com/embed/hle2-bGDh10"},
+{title:"World War Documentary",category:"History",embed:"https://www.youtube.com/embed/HAnw168huqA"},
+
+{title:"Science Documentary",category:"Science",embed:"https://www.youtube.com/embed/Q1YqgPAtzho"},
+{title:"Physics Explained",category:"Science",embed:"https://www.youtube.com/embed/ZihywtixUYo"},
+
+{title:"Wildlife Nature",category:"Nature",embed:"https://www.youtube.com/embed/6v2L2UGZJAM"},
+{title:"Ocean Life",category:"Nature",embed:"https://www.youtube.com/embed/r9PeYPHdpNo"},
+
+{title:"Engineering Documentary",category:"Technology",embed:"https://www.youtube.com/embed/WXuK6gekU1Y"},
+{title:"Mega Machines",category:"Technology",embed:"https://www.youtube.com/embed/7fJ6G0iA4K8"},
+
+{title:"Gaming Documentary",category:"Gaming",embed:"https://www.youtube.com/embed/GoyGlyrYkFo"},
+{title:"Retro Gaming",category:"Gaming",embed:"https://www.youtube.com/embed/Rv8Xb7Y4q6A"},
+
+{title:"Night of the Living Dead",category:"Movies",embed:"https://archive.org/embed/night-of-the-living-dead-1968-english"},
+{title:"Duck and Cover",category:"Education",embed:"https://archive.org/embed/DuckAndCover_201310"},
+{title:"Popeye Cartoon",category:"Cartoons",embed:"https://archive.org/embed/Popeye_forPresident"}
+];
+
+const categories=["All","Space","History","Science","Nature","Technology","Gaming","Cartoons","Education","Movies"];
+let current=0,currentFilter="All";
+
+function loadVideo(i){
+current=i;
+player.src=videos[i].embed;
+title.textContent=videos[i].title;
+category.textContent="Channel: "+videos[i].category;
+localStorage.setItem("jayvox-last-video",i);
+render();
+}
+
+function renderTabs(){
+tabs.innerHTML="";
+categories.forEach(c=>{
+let d=document.createElement("div");
+d.className="tab";
+d.textContent=c;
+d.onclick=()=>{currentFilter=c;render();};
+tabs.appendChild(d);
+});
+}
+
+function render(){
+cards.innerHTML="";
+let q=search.value.toLowerCase();
+let list=videos.filter(v=>(currentFilter==="All"||v.category===currentFilter)&&v.title.toLowerCase().includes(q));
+count.textContent="Videos Available: "+list.length;
+list.forEach(v=>{
+let idx=videos.indexOf(v);
+let card=document.createElement("div");
+card.className="card";
+card.innerHTML="<h3>"+v.title+"</h3><div class='small'>"+v.category+"</div><div class='small'>Double tap to favorite</div>";
+card.onclick=()=>loadVideo(idx);
+card.ondblclick=()=>addFavorite(idx);
+cards.appendChild(card);
+});
+}
+
+function addFavorite(i){
+let fav=JSON.parse(localStorage.getItem("jayvox-favorites")||"[]");
+if(!fav.includes(i)) fav.push(i);
+localStorage.setItem("jayvox-favorites",JSON.stringify(fav));
+}
+
+function showFavorites(){
+let fav=JSON.parse(localStorage.getItem("jayvox-favorites")||"[]");
+if(!fav.length){alert("No favorites saved.");return;}
+alert(fav.map(i=>videos[i].title).join("\\n"));
+}
+
+function randomVideo(){loadVideo(Math.floor(Math.random()*videos.length));}
+function toggleFullscreen(){document.querySelector(".player").requestFullscreen?.();}
+
+search.oninput=render;
+renderTabs();
+const last=localStorage.getItem("jayvox-last-video");
+loadVideo(last?Number(last):0);
+</script>
+</body>
+</html>
