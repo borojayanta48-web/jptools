@@ -25,6 +25,12 @@ input{padding:8px;border-radius:8px}
 </head>
 <body>
 <header>
+<a href="../index.html" style="text-decoration:none;color:white">
+<img src="../images/logo.jpg" style="height:70px;border-radius:10px"><br>
+</a>
+<div style="margin-top:8px">
+<a href="../index.html" style="color:white;text-decoration:none;background:#22c55e;padding:8px 12px;border-radius:8px">🏠 Home</a>
+</div>
 <h1>🧸 Kids Learning Zone Ultimate Deluxe</h1>
 <p>Learning • Games • Flags • Animals • Reading • Drawing • Rewards</p>
 </header>
@@ -111,6 +117,35 @@ input{padding:8px;border-radius:8px}
 
 <div id="library" class="panel">
 <h2>📚 Kids Library</h2>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px">
+<button onclick="showLibraryPage(1)">📖 Story Books</button>
+<button onclick="showLibraryPage(2)">📝 Poems</button>
+<button onclick="showLibraryPage(3)">🎨 Coloring Books</button>
+</div>
+
+<div id="lib1" class="card">
+<h3>📖 Story Books</h3>
+<p>Folder: downloads/story-books/</p>
+<a href="../downloads/story-books/" target="_blank">Open Folder</a>
+</div>
+
+<div id="lib2" class="card" style="display:none">
+<h3>📝 Poems</h3>
+<p>Folder: downloads/poems/</p>
+<a href="../downloads/poems/A_little_adventure.pdf" target="_blank">📄 A Little Adventure</a>
+</div>
+
+<div id="lib3" class="card" style="display:none">
+<h3>🎨 Coloring Books</h3>
+<p>Folder: downloads/coloring-books/</p>
+</div>
+<script>
+function showLibraryPage(n){
+document.getElementById('lib1').style.display=n===1?'block':'none';
+document.getElementById('lib2').style.display=n===2?'block':'none';
+document.getElementById('lib3').style.display=n===3?'block':'none';
+}
+</script>
 
 <div class="card">
 <h3>📖 Story Books</h3>
