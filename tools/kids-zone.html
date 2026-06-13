@@ -1,30 +1,32 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Kids Learning Zone Ultimate Edition</title>
+<title>Kids Learning Zone Ultimate Deluxe</title>
 <style>
-body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
+body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}
 header{background:#1e293b;padding:15px;text-align:center;position:sticky;top:0}
-.container{max-width:1200px;margin:auto;padding:15px}
+.container{max-width:1400px;margin:auto;padding:15px}
 .tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .tab{background:#22c55e;padding:10px 14px;border-radius:10px;cursor:pointer}
 .panel{display:none;background:#1e293b;padding:15px;border-radius:15px;margin-top:15px}
 .active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .card{background:#334155;padding:12px;border-radius:12px;text-align:center}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
-button{background:#22c55e;color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;margin:4px}
+button{background:#22c55e;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;margin:3px}
 canvas{background:#fff;border-radius:10px;touch-action:none}
 .progress{height:20px;background:#334155;border-radius:20px;overflow:hidden}
 .bar{height:20px;background:#22c55e;width:0%}
-.big{font-size:40px}
+.big{font-size:42px}
+input{padding:8px;border-radius:8px}
 </style>
 </head>
 <body>
 <header>
-<h1>🧸 Kids Learning Zone Ultimate Edition</h1>
-<p>Learn • Play • Read • Draw • Speak • Earn Rewards</p>
+<h1>🧸 Kids Learning Zone Ultimate Deluxe</h1>
+<p>Learning • Games • Flags • Animals • Reading • Drawing • Rewards</p>
 </header>
 
 <div class="container">
@@ -34,33 +36,30 @@ canvas{background:#fff;border-radius:10px;touch-action:none}
 <div class="tab" onclick="showPanel('flags')">🌍 Flags</div>
 <div class="tab" onclick="showPanel('games')">🎮 Games</div>
 <div class="tab" onclick="showPanel('reading')">📖 Reading</div>
-<div class="tab" onclick="showPanel('draw')">🎨 Draw</div>
+<div class="tab" onclick="showPanel('drawing')">🎨 Drawing</div>
 <div class="tab" onclick="showPanel('rewards')">🏆 Rewards</div>
 </div>
 
 <div id="alphabet" class="panel active">
-<h2>Alphabet Explorer with Voice</h2>
-<div id="emoji" class="card big">🍎</div>
-<h2 id="letter">A</h2>
-<h3 id="word">Apple</h3>
-<button onclick="speakCurrent()">🔊 Speak</button>
+<h2>Voice Alphabet A-Z</h2>
+<div class="card big" id="alphaEmoji">🍎</div>
+<div class="card"><h2 id="alphaLetter">A</h2><h3 id="alphaWord">Apple</h3></div>
 <button onclick="prevLetter()">⬅ Previous</button>
+<button onclick="speakLetter()">🔊 Speak</button>
 <button onclick="nextLetter()">Next ➡</button>
 </div>
 
 <div id="animals" class="panel">
-<h2>30 Animal Gallery</h2>
-<div class="grid" id="animalGrid"></div>
+<h2>Animal Explorer (30 Animals)</h2>
+<div id="animalGrid" class="grid"></div>
 </div>
 
 <div id="flags" class="panel">
-<h2>Flags Quiz</h2>
-<div id="flagCard" class="card big">🇮🇳</div><br>
-<button onclick="flagGuess('India')">India</button>
-<button onclick="flagGuess('Japan')">Japan</button>
-<button onclick="flagGuess('USA')">USA</button>
-<button onclick="flagGuess('Brazil')">Brazil</button>
-<p id="flagResult"></p>
+<h2>World Flags Explorer</h2>
+<div class="card big" id="flagEmoji">🇮🇳</div>
+<div class="card" id="flagCountry">India</div>
+<button onclick="speakCountry()">🔊 Speak Country</button>
+<button onclick="nextFlag()">Next Flag</button>
 </div>
 
 <div id="games" class="panel">
@@ -78,7 +77,7 @@ canvas{background:#fff;border-radius:10px;touch-action:none}
 <p id="mathResult"></p>
 
 <h2>Animal Guess</h2>
-<div id="guessAnimal" class="card big">🐶</div>
+<div class="card big" id="guessAnimal">🐶</div>
 <button onclick="animalGuess('Dog')">Dog</button>
 <button onclick="animalGuess('Cat')">Cat</button>
 <button onclick="animalGuess('Lion')">Lion</button>
@@ -87,27 +86,27 @@ canvas{background:#fff;border-radius:10px;touch-action:none}
 
 <div id="reading" class="panel">
 <h2>Reading Stories</h2>
-<div class="card">🐱 The cat sat on the mat.</div><br>
-<div class="card">🐶 The dog ran through the park.</div><br>
-<div class="card">🦁 The lion rested under a tree.</div><br>
-<button onclick="earn()">I Read These Stories!</button>
+<div class="card">🐱 The cat sat on the mat and watched the sunset.</div><br>
+<div class="card">🐶 The dog played in the park and made new friends.</div><br>
+<div class="card">🦁 The lion rested under a tree after a long walk.</div><br>
+<div class="card">🐘 The elephant crossed the river with its family.</div><br>
+<button onclick="earnPoints(2)">I Read These Stories!</button>
 </div>
 
-<div id="draw" class="panel">
+<div id="drawing" class="panel">
 <h2>Drawing Board</h2>
-<canvas id="cv" width="320" height="320"></canvas><br>
-<button onclick="clearCanvas()">Clear Drawing</button>
+<canvas id="canvas" width="350" height="350"></canvas><br>
+<button onclick="clearCanvas()">Clear</button>
 </div>
 
 <div id="rewards" class="panel">
-<h2>Rewards</h2>
-<div class="progress"><div id="bar" class="bar"></div></div>
+<h2>Rewards & Progress</h2>
+<div class="progress"><div class="bar" id="bar"></div></div>
 <p id="progressText">0%</p>
 <div id="badges">⭐ Beginner Explorer</div>
 <p>🎁 Stickers: <span id="stickers">0</span></p>
 <button onclick="resetProgress()">Reset Progress</button>
 </div>
-
 </div>
 
 <script>
@@ -116,69 +115,72 @@ document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
 document.getElementById(id).classList.add('active');
 }
 
-let points=+localStorage.getItem('kidsUltimatePoints')||0;
-let stickersCount=+localStorage.getItem('kidsUltimateStickers')||0;
+let points=Number(localStorage.getItem('kz_points')||0);
+let stickers=Number(localStorage.getItem('kz_stickers')||0);
 
-function save(){localStorage.setItem('kidsUltimatePoints',points);localStorage.setItem('kidsUltimateStickers',stickersCount);}
-function earn(){points++;if(points%5===0)stickersCount++;save();renderRewards();}
+function saveProgress(){
+localStorage.setItem('kz_points',points);
+localStorage.setItem('kz_stickers',stickers);
+}
+function earnPoints(n=1){
+points+=n;
+if(points%5===0) stickers++;
+saveProgress();
+renderRewards();
+}
 function renderRewards(){
 let pct=Math.min(points*2,100);
 bar.style.width=pct+'%';
 progressText.textContent=pct+'% Complete';
-stickers.textContent=stickersCount;
+document.getElementById('stickers').textContent=stickers;
 let b=['⭐ Beginner Explorer'];
 if(points>=5)b.push('🔤 Alphabet Master');
-if(points>=10)b.push('🎨 Color Wizard');
+if(points>=10)b.push('🐶 Animal Expert');
 if(points>=15)b.push('🌍 Flag Explorer');
-if(points>=20)b.push('📖 Reading Hero');
-if(points>=25)b.push('🦁 Animal Expert');
-if(points>=30)b.push('🏆 Super Learner');
+if(points>=20)b.push('🎮 Game Champion');
+if(points>=30)b.push('📖 Reading Hero');
+if(points>=40)b.push('🏆 Super Learner');
 badges.innerHTML=b.join('<br>');
 }
-function resetProgress(){points=0;stickersCount=0;save();renderRewards();}
+function resetProgress(){points=0;stickers=0;saveProgress();renderRewards();}
 
-// Alphabet voice
-const items=[["A","Apple","🍎"],["B","Ball","⚽"],["C","Cat","🐱"],["D","Dog","🐶"],["E","Elephant","🐘"],["F","Fish","🐟"],["G","Grapes","🍇"],["H","House","🏠"],["I","Ice Cream","🍦"],["J","Juice","🧃"],["K","Kite","🪁"],["L","Lion","🦁"],["M","Monkey","🐵"],["N","Nest","🪺"],["O","Owl","🦉"],["P","Panda","🐼"],["Q","Queen","👑"],["R","Rabbit","🐰"],["S","Sun","☀️"],["T","Tiger","🐯"],["U","Umbrella","☂️"],["V","Van","🚐"],["W","Whale","🐋"],["X","Xylophone","🎼"],["Y","Yak","🦬"],["Z","Zebra","🦓"]];
-let idx=0;
-function drawLetter(){letter.textContent=items[idx][0];word.textContent=items[idx][1];emoji.textContent=items[idx][2];}
-function speakCurrent(){speechSynthesis.speak(new SpeechSynthesisUtterance(items[idx][0]+" for "+items[idx][1]));}
-function nextLetter(){idx=(idx+1)%items.length;drawLetter();earn();speakCurrent();}
-function prevLetter(){idx=(idx-1+items.length)%items.length;drawLetter();speakCurrent();}
+const alphabet=[["A","Apple","🍎"],["B","Ball","⚽"],["C","Cat","🐱"],["D","Dog","🐶"],["E","Elephant","🐘"],["F","Fish","🐟"],["G","Grapes","🍇"],["H","House","🏠"],["I","Ice Cream","🍦"],["J","Juice","🧃"],["K","Kite","🪁"],["L","Lion","🦁"],["M","Monkey","🐵"],["N","Nest","🪺"],["O","Owl","🦉"],["P","Panda","🐼"],["Q","Queen","👑"],["R","Rabbit","🐰"],["S","Sun","☀️"],["T","Tiger","🐯"],["U","Umbrella","☂️"],["V","Van","🚐"],["W","Whale","🐋"],["X","Xylophone","🎼"],["Y","Yak","🦬"],["Z","Zebra","🦓"]];
+let ai=0;
+function drawAlpha(){alphaLetter.textContent=alphabet[ai][0];alphaWord.textContent=alphabet[ai][1];alphaEmoji.textContent=alphabet[ai][2];}
+function speakLetter(){speechSynthesis.speak(new SpeechSynthesisUtterance(alphabet[ai][0]+" for "+alphabet[ai][1]));}
+function nextLetter(){ai=(ai+1)%alphabet.length;drawAlpha();earnPoints();speakLetter();}
+function prevLetter(){ai=(ai-1+alphabet.length)%alphabet.length;drawAlpha();speakLetter();}
 
-// Animals
 const animals=["🐶 Dog","🐱 Cat","🦁 Lion","🐘 Elephant","🐵 Monkey","🐼 Panda","🦒 Giraffe","🐯 Tiger","🦓 Zebra","🐧 Penguin","🦉 Owl","🐸 Frog","🦊 Fox","🐨 Koala","🐻 Bear","🐮 Cow","🐴 Horse","🐰 Rabbit","🐭 Mouse","🦌 Deer","🐺 Wolf","🐗 Boar","🦔 Hedgehog","🐹 Hamster","🐷 Pig","🐑 Sheep","🐐 Goat","🐪 Camel","🦬 Bison","🐬 Dolphin"];
-animalGrid.innerHTML=animals.map(a=>'<div class="card">'+a+'</div>').join('');
+animalGrid.innerHTML=animals.map(a=>`<div class="card">${a}<br><button onclick="speechSynthesis.speak(new SpeechSynthesisUtterance('${a.split(' ')[1]}'))">🔊 Speak</button></div>`).join('');
 
-// Flags
-const flags=[["🇮🇳","India"],["🇯🇵","Japan"],["🇺🇸","USA"],["🇧🇷","Brazil"]]; let fi=0;
-function loadFlag(){flagCard.textContent=flags[fi][0];}
-function flagGuess(v){flagResult.textContent=v===flags[fi][1]?'✅ Correct':'❌ Wrong'; if(v===flags[fi][1]) earn(); fi=(fi+1)%flags.length; loadFlag();}
+const flags=[["🇮🇳","India"],["🇺🇸","United States"],["🇬🇧","United Kingdom"],["🇯🇵","Japan"],["🇨🇳","China"],["🇫🇷","France"],["🇩🇪","Germany"],["🇧🇷","Brazil"],["🇨🇦","Canada"],["🇦🇺","Australia"],["🇮🇹","Italy"],["🇷🇺","Russia"],["🇪🇸","Spain"],["🇰🇷","South Korea"],["🇿🇦","South Africa"],["🇲🇽","Mexico"],["🇸🇦","Saudi Arabia"],["🇦🇷","Argentina"],["🇪🇬","Egypt"],["🇳🇵","Nepal"],["🇧🇩","Bangladesh"],["🇵🇰","Pakistan"],["🇱🇰","Sri Lanka"],["🇹🇭","Thailand"],["🇻🇳","Vietnam"],["🇳🇿","New Zealand"],["🇸🇬","Singapore"],["🇲🇾","Malaysia"],["🇮🇩","Indonesia"],["🇹🇷","Turkey"]];
+let fi=0;
+function drawFlag(){flagEmoji.textContent=flags[fi][0];flagCountry.textContent=flags[fi][1];}
+function nextFlag(){fi=(fi+1)%flags.length;drawFlag();earnPoints();}
+function speakCountry(){speechSynthesis.speak(new SpeechSynthesisUtterance(flags[fi][1]));}
 
-// Color game
 const colors=['red','green','blue']; let current='red';
 function newColor(){current=colors[Math.floor(Math.random()*colors.length)];colorBox.style.background=current;}
-function pickColor(c){colorResult.textContent=c===current?'✅ Correct':'❌ Wrong'; if(c===current) earn(); newColor();}
+function pickColor(c){colorResult.textContent=(c===current)?'✅ Correct':'❌ Wrong'; if(c===current) earnPoints(); newColor();}
 
-// Math
 let a,b;
 function newMath(){a=Math.floor(Math.random()*10)+1;b=Math.floor(Math.random()*10)+1;m1.textContent=a;m2.textContent=b;}
-function checkMath(){mathResult.textContent=Number(mathInput.value)===a+b?'✅ Correct':'❌ Wrong'; if(Number(mathInput.value)===a+b) earn(); mathInput.value=''; newMath();}
+function checkMath(){if(Number(mathInput.value)===a+b){mathResult.textContent='✅ Correct';earnPoints();} else mathResult.textContent='❌ Wrong'; mathInput.value=''; newMath();}
 
-// Animal guess
 const guesses=[["🐶","Dog"],["🐱","Cat"],["🦁","Lion"]]; let gi=0;
 function loadAnimal(){guessAnimal.textContent=guesses[gi][0];}
-function animalGuess(v){animalResult.textContent=v===guesses[gi][1]?'✅ Correct':'❌ Wrong'; if(v===guesses[gi][1]) earn(); gi=(gi+1)%guesses.length; loadAnimal();}
+function animalGuess(v){animalResult.textContent=v===guesses[gi][1]?'✅ Correct':'❌ Wrong'; if(v===guesses[gi][1]) earnPoints(); gi=(gi+1)%guesses.length; loadAnimal();}
 
-// Drawing
-const cv=document.getElementById('cv'),ctx=cv.getContext('2d'); let drawing=false;
-function pos(e){const r=cv.getBoundingClientRect(); return {x:(e.touches?e.touches[0].clientX:e.clientX)-r.left,y:(e.touches?e.touches[0].clientY:e.clientY)-r.top};}
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'); let drawing=false;
+function pos(e){const r=canvas.getBoundingClientRect();return{x:(e.touches?e.touches[0].clientX:e.clientX)-r.left,y:(e.touches?e.touches[0].clientY:e.clientY)-r.top};}
 function start(e){drawing=true;paint(e);} function stop(){drawing=false;ctx.beginPath();}
-function paint(e){if(!drawing)return; let p=pos(e); ctx.lineWidth=4; ctx.lineCap='round'; ctx.lineTo(p.x,p.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p.x,p.y);}
-cv.addEventListener('mousedown',start);cv.addEventListener('mousemove',paint);cv.addEventListener('mouseup',stop);
-cv.addEventListener('touchstart',start);cv.addEventListener('touchmove',paint);cv.addEventListener('touchend',stop);
-function clearCanvas(){ctx.clearRect(0,0,cv.width,cv.height);}
+function paint(e){if(!drawing)return;let p=pos(e);ctx.lineWidth=4;ctx.lineCap='round';ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);}
+canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',paint);canvas.addEventListener('mouseup',stop);
+canvas.addEventListener('touchstart',start);canvas.addEventListener('touchmove',paint);canvas.addEventListener('touchend',stop);
+function clearCanvas(){ctx.clearRect(0,0,canvas.width,canvas.height);}
 
-drawLetter(); loadFlag(); newColor(); newMath(); loadAnimal(); renderRewards();
+drawAlpha();drawFlag();newColor();newMath();loadAnimal();renderRewards();
 </script>
 </body>
 </html>
