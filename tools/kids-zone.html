@@ -3,178 +3,180 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Kids Learning Zone 2.2</title>
+<title>Kids Learning Zone 2.3</title>
 <style>
 body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}
 header{background:#1e293b;padding:15px;text-align:center}
 .container{max-width:1200px;margin:auto;padding:15px}
-.tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:15px}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .tab{background:#22c55e;padding:10px 14px;border-radius:10px;cursor:pointer}
-.panel{background:#1e293b;padding:15px;border-radius:15px;margin-bottom:15px}
+.panel{background:#1e293b;padding:15px;border-radius:15px;margin-top:15px}
 .hidden{display:none}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .card{background:#334155;padding:15px;border-radius:12px;text-align:center}
 button{background:#22c55e;color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer}
-canvas{background:white;border-radius:10px;touch-action:none}
-.big{font-size:42px}
+.big{font-size:40px}
+.progress{background:#334155;border-radius:20px;overflow:hidden;height:20px}
+.bar{height:20px;width:0%;background:#22c55e}
 </style>
 </head>
 <body>
 <header>
-<h1>🧸 Kids Learning Zone 2.2</h1>
-<p>Learn • Play • Quiz • Draw • Memory Game</p>
+<h1>🧸 Kids Learning Zone 2.3</h1>
+<p>Learn • Play • Quiz • Flags • Colors • Achievements</p>
 </header>
 
 <div class="container">
+
 <div class="tabs">
-<div class="tab" onclick="showP('learn')">📚 Learn</div>
-<div class="tab" onclick="showP('animals')">🐶 Animals</div>
-<div class="tab" onclick="showP('abc')">🔤 ABC</div>
-<div class="tab" onclick="showP('memory')">🧩 Memory</div>
-<div class="tab" onclick="showP('quiz')">❓ Quiz</div>
-<div class="tab" onclick="showP('draw')">🎨 Draw</div>
+<div class="tab" onclick="show('learn')">📚 Learn</div>
+<div class="tab" onclick="show('colors')">🎨 Colors</div>
+<div class="tab" onclick="show('flags')">🌍 Flags</div>
+<div class="tab" onclick="show('quiz')">❓ Quiz</div>
+<div class="tab" onclick="show('math')">🔢 Math</div>
+<div class="tab" onclick="show('achievements')">🏆 Achievements</div>
 </div>
 
 <div id="learn" class="panel">
-<h2>Learning Center</h2>
-<div class="grid">
-<div class="card">🔢 Numbers</div>
-<div class="card">🎨 Colors</div>
-<div class="card">⬜ Shapes</div>
-<div class="card">🚗 Vehicles</div>
-<div class="card">🌍 Countries</div>
-<div class="card">🏳️ Flags</div>
-</div>
-</div>
-
-<div id="animals" class="panel hidden">
-<h2>🐶 Animal Gallery</h2>
+<h2>📚 Learning Cards</h2>
 <div class="grid">
 <div class="card big">🐶<br>Dog</div>
 <div class="card big">🐱<br>Cat</div>
 <div class="card big">🦁<br>Lion</div>
-<div class="card big">🐘<br>Elephant</div>
-<div class="card big">🐵<br>Monkey</div>
-<div class="card big">🐼<br>Panda</div>
+<div class="card big">🚗<br>Car</div>
+<div class="card big">✈️<br>Plane</div>
+<div class="card big">🍎<br>Apple</div>
 </div>
 </div>
 
-<div id="abc" class="panel hidden">
-<h2>🔤 ABC Explorer</h2>
-<div class="card big" id="abcCard">A - Apple 🍎</div>
-<button onclick="nextABC()">Next Letter</button>
+<div id="colors" class="panel hidden">
+<h2>🎨 Color Match</h2>
+<p>Which color is this?</p>
+<div id="colorBox" style="height:100px;border-radius:12px;"></div><br>
+<button onclick="pickColor('red')">Red</button>
+<button onclick="pickColor('green')">Green</button>
+<button onclick="pickColor('blue')">Blue</button>
+<p id="colorResult"></p>
 </div>
 
-<div id="memory" class="panel hidden">
-<h2>🧩 Memory Match</h2>
-<p>Find the matching emojis!</p>
-<div id="memoryGrid" class="grid"></div>
+<div id="flags" class="panel hidden">
+<h2>🌍 Flags Quiz</h2>
+<div class="card big" id="flagCard">🇮🇳</div>
+<button onclick="flagAnswer('India')">India</button>
+<button onclick="flagAnswer('Japan')">Japan</button>
+<button onclick="flagAnswer('USA')">USA</button>
+<p id="flagResult"></p>
 </div>
 
 <div id="quiz" class="panel hidden">
-<h2>❓ Quiz</h2>
-<p id="q"></p>
-<button onclick="ans(true)">True</button>
-<button onclick="ans(false)">False</button>
-<p id="qr"></p>
-<p id="score">Score: 0</p>
+<h2>❓ Knowledge Quiz</h2>
+<p id="question"></p>
+<button onclick="quizAnswer(true)">True</button>
+<button onclick="quizAnswer(false)">False</button>
+<p id="quizResult"></p>
 </div>
 
-<div id="draw" class="panel hidden">
-<h2>🎨 Drawing Board</h2>
-<canvas id="cv" width="300" height="300"></canvas><br><br>
-<button onclick="clearCanvas()">Clear</button>
+<div id="math" class="panel hidden">
+<h2>🔢 Math Challenge</h2>
+<p><span id="m1"></span> + <span id="m2"></span> = ?</p>
+<input id="mathInput" type="number">
+<button onclick="checkMath()">Check</button>
+<p id="mathResult"></p>
 </div>
+
+<div id="achievements" class="panel hidden">
+<h2>🏆 Progress</h2>
+<div class="progress"><div id="bar" class="bar"></div></div>
+<p id="progressText">0%</p>
+<div id="badgeList">⭐ Beginner Explorer</div>
+</div>
+
 </div>
 
 <script>
-function showP(id){
-document.querySelectorAll('.panel').forEach(x=>x.classList.add('hidden'));
+function show(id){
+document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
 document.getElementById(id).classList.remove('hidden');
 }
 
-// ABC
-const abc=[
-"A - Apple 🍎","B - Ball ⚽","C - Cat 🐱","D - Dog 🐶","E - Elephant 🐘",
-"F - Fish 🐟","G - Grapes 🍇","H - House 🏠"
+let points=0;
+function addPoints(n){
+points+=n;
+let pct=Math.min(points*5,100);
+bar.style.width=pct+'%';
+progressText.textContent=pct+'% Complete';
+if(points>=5) badgeList.innerHTML+="<br>🎨 Color Master";
+if(points>=10) badgeList.innerHTML+="<br>🌍 Flag Explorer";
+}
+
+// Color Game
+const colors=['red','green','blue'];
+let currentColor='red';
+function newColor(){
+currentColor=colors[Math.floor(Math.random()*colors.length)];
+colorBox.style.background=currentColor;
+}
+function pickColor(c){
+if(c===currentColor){
+colorResult.textContent='✅ Correct';
+addPoints(1);
+}else{
+colorResult.textContent='❌ Try Again';
+}
+newColor();
+}
+newColor();
+
+// Flags
+const flags=[
+{f:'🇮🇳',a:'India'},
+{f:'🇯🇵',a:'Japan'},
+{f:'🇺🇸',a:'USA'}
 ];
-let ai=0;
-function nextABC(){ai=(ai+1)%abc.length;abcCard.innerHTML=abc[ai];}
+let fi=0;
+function loadFlag(){flagCard.textContent=flags[fi].f;}
+function flagAnswer(v){
+if(v===flags[fi].a){flagResult.textContent='✅ Correct';addPoints(1);}
+else flagResult.textContent='❌ Wrong';
+fi=(fi+1)%flags.length;
+loadFlag();
+}
+loadFlag();
 
 // Quiz
 const qs=[
-{q:"The Sun is a star.",a:true},
-{q:"A cat is a vehicle.",a:false},
-{q:"Earth is a planet.",a:true}
+{q:'The Earth is round.',a:true},
+{q:'Fish live on the Moon.',a:false},
+{q:'Water is important.',a:true}
 ];
-let qi=0,s=0;
-function loadQ(){q.textContent=qs[qi].q;}
-function ans(v){
-if(v===qs[qi].a){s++;qr.textContent="✅ Correct";}
-else{qr.textContent="❌ Wrong";}
-score.textContent="Score: "+s;
+let qi=0;
+function loadQ(){question.textContent=qs[qi].q;}
+function quizAnswer(v){
+quizResult.textContent=(v===qs[qi].a)?'✅ Correct':'❌ Wrong';
+if(v===qs[qi].a) addPoints(1);
 qi=(qi+1)%qs.length;
 loadQ();
 }
 loadQ();
 
-// Memory Game
-const emojis=["🐶","🐶","🐱","🐱","🦁","🦁","🐘","🐘"];
-emojis.sort(()=>Math.random()-0.5);
-let first=null,lock=false;
-function buildMemory(){
-memoryGrid.innerHTML="";
-emojis.forEach((e,i)=>{
-let d=document.createElement("div");
-d.className="card";
-d.textContent="❓";
-d.onclick=()=>flip(d,e);
-memoryGrid.appendChild(d);
-});
+// Math
+let a,b;
+function newMath(){
+a=Math.floor(Math.random()*10)+1;
+b=Math.floor(Math.random()*10)+1;
+m1.textContent=a;m2.textContent=b;
 }
-function flip(card,e){
-if(lock||card.dataset.done)return;
-card.textContent=e;
-if(!first){first={card,e};return;}
-if(first.e===e){
-card.dataset.done=1;
-first.card.dataset.done=1;
-first=null;
+function checkMath(){
+if(Number(mathInput.value)===a+b){
+mathResult.textContent='✅ Correct';
+addPoints(1);
 }else{
-lock=true;
-let old=first;
-setTimeout(()=>{
-card.textContent="❓";
-old.card.textContent="❓";
-first=null;
-lock=false;
-},700);
+mathResult.textContent='❌ Wrong';
 }
+mathInput.value='';
+newMath();
 }
-buildMemory();
-
-// Drawing
-const cv=document.getElementById("cv");
-const ctx=cv.getContext("2d");
-let draw=false;
-function start(e){draw=true;paint(e);}
-function stop(){draw=false;ctx.beginPath();}
-function paint(e){
-if(!draw)return;
-const r=cv.getBoundingClientRect();
-const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
-const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
-ctx.lineWidth=4;
-ctx.lineCap="round";
-ctx.lineTo(x,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y);
-}
-cv.addEventListener("mousedown",start);
-cv.addEventListener("mousemove",paint);
-cv.addEventListener("mouseup",stop);
-cv.addEventListener("touchstart",start);
-cv.addEventListener("touchmove",paint);
-cv.addEventListener("touchend",stop);
-function clearCanvas(){ctx.clearRect(0,0,cv.width,cv.height);}
+newMath();
 </script>
 </body>
 </html>
