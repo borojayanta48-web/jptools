@@ -3,138 +3,121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>JayVox TV v1.4</title>
+<title>JayVox TV v1.5</title>
 <style>
-body{margin:0;background:#0f1117;color:#fff;font-family:Arial,sans-serif}
-header{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:14px;background:#161b22;position:sticky;top:0;z-index:10}
-a,button{background:#2563eb;color:#fff;border:none;padding:10px 14px;border-radius:8px;text-decoration:none;cursor:pointer}
+body{margin:0;background:#0b1220;color:#fff;font-family:Arial,sans-serif}
+header{position:sticky;top:0;background:#111827;padding:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;z-index:10}
+.btn{background:#2563eb;color:#fff;text-decoration:none;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
 .container{max-width:1400px;margin:auto;padding:15px}
-.search{width:100%;padding:12px;border:none;border-radius:10px;margin-bottom:12px}
-.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.tab{background:#222;padding:8px 12px;border-radius:20px;cursor:pointer}
-.player{aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden}
+.search{width:100%;padding:12px;border:none;border-radius:10px}
+.hero{margin:15px 0;background:#1f2937;border-radius:16px;padding:20px}
+.hero h1{margin:0}
+.player{aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;margin-top:12px}
 iframe{width:100%;height:100%;border:0}
-.info{text-align:center;padding:12px}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
-.card{background:#1b1f2a;padding:12px;border-radius:12px;cursor:pointer}
-.card:hover{transform:translateY(-2px)}
-.thumb{font-size:42px;text-align:center;padding:10px}
+.rowtitle{margin:20px 0 10px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:#1f2937;padding:8px 12px;border-radius:20px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.card{background:#1f2937;border-radius:12px;overflow:hidden;cursor:pointer}
+.thumb{height:120px;display:flex;align-items:center;justify-content:center;font-size:42px;background:#374151}
+.card div{padding:10px}
 .small{opacity:.75;font-size:13px}
-#favPanel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);padding:20px;overflow:auto}
-.favItem{background:#1b1f2a;padding:10px;margin:8px 0;border-radius:8px;cursor:pointer}
 </style>
 </head>
 <body>
+
 <header>
-<a href="https://jayvox.in">🏠 Home</a>
-<button onclick="randomVideo()">🎲 Surprise Me</button>
-<button onclick="toggleFavorites()">⭐ Favorites</button>
-<button onclick="toggleFullscreen()">⛶ Fullscreen</button>
+<a class="btn" href="https://jayvox.in">🏠 Home</a>
+<button class="btn" onclick="randomVideo()">🎲 Surprise Me</button>
+<button class="btn" onclick="showFavorites()">⭐ Favorites</button>
 </header>
 
 <div class="container">
+
 <input id="search" class="search" placeholder="Search videos...">
+
+<div class="hero">
+<h1>📺 JayVox TV</h1>
+<div id="featured">Featured: NASA Live Earth</div>
+<div class="player"><iframe id="player" allowfullscreen></iframe></div>
+</div>
+
+<h3 class="rowtitle">Categories</h3>
 <div class="tabs" id="tabs"></div>
 
-<div class="player"><iframe id="player" allowfullscreen></iframe></div>
+<h3 class="rowtitle">Continue Watching</h3>
+<div id="continueBox" class="small">Your last watched video will appear here.</div>
 
-<div class="info">
-<h2 id="title"></h2>
-<div id="category"></div>
-<div id="count" class="small"></div>
-</div>
+<h3 class="rowtitle">Trending</h3>
+<div class="grid" id="trending"></div>
 
-<div class="cards" id="cards"></div>
-</div>
+<h3 class="rowtitle">All Videos</h3>
+<div class="grid" id="cards"></div>
 
-<div id="favPanel">
-<h2>⭐ Favorite Videos</h2>
-<button onclick="toggleFavorites()">Close</button>
-<div id="favList"></div>
 </div>
 
 <script>
 const videos=[
-{e:"🚀",title:"NASA Live Earth",category:"Space",embed:"https://www.youtube.com/embed/DDU-rZs-Ic4"},
-{e:"🌙",title:"Artemis Mission",category:"Space",embed:"https://www.youtube.com/embed/21X5lGlDOfg"},
-{e:"🏛️",title:"Ancient Civilizations",category:"History",embed:"https://www.youtube.com/embed/hle2-bGDh10"},
-{e:"⚔️",title:"World War Documentary",category:"History",embed:"https://www.youtube.com/embed/HAnw168huqA"},
-{e:"🧪",title:"Science Documentary",category:"Science",embed:"https://www.youtube.com/embed/Q1YqgPAtzho"},
-{e:"🌿",title:"Wildlife Nature",category:"Nature",embed:"https://www.youtube.com/embed/6v2L2UGZJAM"},
-{e:"⚙️",title:"Engineering Documentary",category:"Technology",embed:"https://www.youtube.com/embed/WXuK6gekU1Y"},
-{e:"🎮",title:"Gaming Documentary",category:"Gaming",embed:"https://www.youtube.com/embed/GoyGlyrYkFo"},
-{e:"🎬",title:"Night of the Living Dead",category:"Movies",embed:"https://archive.org/embed/night-of-the-living-dead-1968-english"},
-{e:"🎓",title:"Duck and Cover",category:"Education",embed:"https://archive.org/embed/DuckAndCover_201310"},
-{e:"📺",title:"Popeye Cartoon",category:"Cartoons",embed:"https://archive.org/embed/Popeye_forPresident"}
+{e:"🚀",t:"NASA Live Earth",c:"Space",u:"https://www.youtube.com/embed/DDU-rZs-Ic4"},
+{e:"🌕",t:"Artemis Mission",c:"Space",u:"https://www.youtube.com/embed/21X5lGlDOfg"},
+{e:"🏛️",t:"Ancient Civilizations",c:"History",u:"https://www.youtube.com/embed/hle2-bGDh10"},
+{e:"⚔️",t:"World War Documentary",c:"History",u:"https://www.youtube.com/embed/HAnw168huqA"},
+{e:"🧪",t:"Science Documentary",c:"Science",u:"https://www.youtube.com/embed/Q1YqgPAtzho"},
+{e:"🌿",t:"Wildlife Nature",c:"Nature",u:"https://www.youtube.com/embed/6v2L2UGZJAM"},
+{e:"⚙️",t:"Engineering Documentary",c:"Technology",u:"https://www.youtube.com/embed/WXuK6gekU1Y"},
+{e:"🎮",t:"Gaming Documentary",c:"Gaming",u:"https://www.youtube.com/embed/GoyGlyrYkFo"},
+{e:"🎬",t:"Night of the Living Dead",c:"Movies",u:"https://archive.org/embed/night-of-the-living-dead-1968-english"},
+{e:"📺",t:"Popeye Cartoon",c:"Cartoons",u:"https://archive.org/embed/Popeye_forPresident"},
+{e:"🎓",t:"Duck and Cover",c:"Education",u:"https://archive.org/embed/DuckAndCover_201310"}
 ];
 
-const categories=["All","Space","History","Science","Nature","Technology","Gaming","Cartoons","Education","Movies"];
-let currentFilter="All";
+const cats=["All",...new Set(videos.map(v=>v.c))];
+let filter="All";
 
-function loadVideo(i){
-player.src=videos[i].embed;
-title.textContent=videos[i].title;
-category.textContent="Channel: "+videos[i].category;
-localStorage.setItem("jayvox-last-video",i);
-render();
+function play(i){
+player.src=videos[i].u;
+featured.textContent="Featured: "+videos[i].t;
+localStorage.setItem("jayvox-last",i);
+renderContinue();
 }
-
+function card(v,i){
+return `<div class="card" onclick="play(${i})"><div class="thumb">${v.e}</div><div><b>${v.t}</b><br><span class='small'>${v.c}</span></div></div>`;
+}
+function render(){
+const q=search.value.toLowerCase();
+cards.innerHTML="";
+videos.forEach((v,i)=>{
+if((filter==="All"||v.c===filter)&&v.t.toLowerCase().includes(q)){
+cards.innerHTML+=card(v,i);
+}
+});
+}
 function renderTabs(){
 tabs.innerHTML="";
-categories.forEach(c=>{
-let t=document.createElement("div");
-t.className="tab";
-t.textContent=c;
-t.onclick=()=>{currentFilter=c;render();};
-tabs.appendChild(t);
+cats.forEach(c=>{
+tabs.innerHTML+=`<div class="tab" onclick="filter='${c}';render()">${c}</div>`;
 });
 }
-
-function render(){
-cards.innerHTML="";
-let q=search.value.toLowerCase();
-let list=videos.filter(v=>(currentFilter==="All"||v.category===currentFilter)&&v.title.toLowerCase().includes(q));
-count.textContent="Videos Available: "+list.length;
-
-list.forEach(v=>{
-let i=videos.indexOf(v);
-let card=document.createElement("div");
-card.className="card";
-card.innerHTML=`<div class="thumb">${v.e}</div><h3>${v.title}</h3><div class="small">${v.category}</div><div class="small">Double click to favorite</div>`;
-card.onclick=()=>loadVideo(i);
-card.ondblclick=()=>addFavorite(i);
-cards.appendChild(card);
-});
+function renderTrending(){
+trending.innerHTML="";
+videos.slice(0,6).forEach((v,i)=>trending.innerHTML+=card(v,i));
 }
-
-function addFavorite(i){
-let fav=JSON.parse(localStorage.getItem("jayvox-favorites")||"[]");
-if(!fav.includes(i)) fav.push(i);
-localStorage.setItem("jayvox-favorites",JSON.stringify(fav));
+function renderContinue(){
+const last=localStorage.getItem("jayvox-last");
+if(last!==null){
+continueBox.innerHTML="Last watched: <b>"+videos[last].t+"</b>";
 }
-
-function toggleFavorites(){
-const p=document.getElementById("favPanel");
-if(p.style.display==="block"){p.style.display="none";return;}
-let fav=JSON.parse(localStorage.getItem("jayvox-favorites")||"[]");
-favList.innerHTML="";
-fav.forEach(i=>{
-let d=document.createElement("div");
-d.className="favItem";
-d.textContent=videos[i].title+" ("+videos[i].category+")";
-d.onclick=()=>{loadVideo(i);toggleFavorites();};
-favList.appendChild(d);
-});
-p.style.display="block";
 }
-
-function randomVideo(){loadVideo(Math.floor(Math.random()*videos.length));}
-function toggleFullscreen(){document.querySelector(".player").requestFullscreen?.();}
+function randomVideo(){play(Math.floor(Math.random()*videos.length));}
+function showFavorites(){alert("Favorites system will expand in v1.6");}
 
 search.oninput=render;
 renderTabs();
-const last=localStorage.getItem("jayvox-last-video");
-loadVideo(last?Number(last):0);
+renderTrending();
+render();
+const last=localStorage.getItem("jayvox-last");
+play(last?Number(last):0);
 </script>
+
 </body>
 </html>
