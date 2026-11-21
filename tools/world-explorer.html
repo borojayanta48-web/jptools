@@ -32,7 +32,7 @@
 </section>
 
 <section class="view" id="atlas">
-<div class="panel"><div class="heading"><h3>🗺️ Interactive world atlas</h3><span class="badge">Tap a country</span></div><p class="muted">Explore borders, zoom around the globe and select a country to open its encyclopedia profile. Map tiles and boundary data load from public services.</p><div class="toolbar"><button class="btn small" id="mapWorld">🌐 World view</button><button class="btn small" id="mapReset">↺ Reset map</button><select class="field" id="mapContinent"><option value="">All continents</option><option>Africa</option><option>Asia</option><option>Europe</option><option>North America</option><option>South America</option><option>Oceania</option></select></div><div class="mapbox"><div id="map"></div></div><p class="tiny" id="mapStatus">Map will initialize when this tab is opened.</p></div>
+<div class="panel"><div class="heading"><h3>🗺️ Interactive world atlas</h3><span class="badge">Tap a country</span></div><p class="muted">Explore borders, zoom around the globe and select a country to open its encyclopedia profile. Map tiles and boundary data load from public services.</p><div class="toolbar"><button class="btn small" id="mapWorld">🌐 World view</button><button class="btn small" id="mapReset">↺ Reset map</button><select class="field" id="mapContinent"><option value="">All continents</option><option>Africa</option><option>Asia</option><option>Europe</option><option>North America</option><option>South America</option><option>Oceania</option></select></div><div class="mapbox"><div id="map"></div></div><p class="tiny" id="mapStatus">Map will initialize when this tab is opened.</p><div class="sectiontitle">🏳️ Browse countries & flags</div><div class="toolbar"><input class="field search" id="atlasSearch" placeholder="Find a country on the atlas…"><select class="field" id="atlasContinent"><option value="">All continents</option><option>Africa</option><option>Asia</option><option>Europe</option><option>North America</option><option>South America</option><option>Oceania</option></select></div><div class="grid" id="atlasCountryGrid"></div></div>
 </section>
 
 <section class="view" id="countries">
@@ -79,13 +79,14 @@
 </main>
 <div class="modal" id="modal"><div class="modalbox"><button class="btn small close" id="modalClose">✕ Close</button><div id="modalContent"></div></div></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3"></script>
 <script>
 (()=>{'use strict';
 const API='https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,population,area,languages,currencies,flags,borders,idd,timezones,continents,maps,latlng,independent,unMember,landlocked,car';
 const $=id=>document.getElementById(id), esc=s=>String(s??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let countries=[],shown=60,current=null,previousView='countries',map=null,geoLayer=null,score=0,asked=0,quizAnswer=null,quizLocked=false;
 const get=(k,d=[])=>{try{return JSON.parse(localStorage.getItem('jvx_ultimate_'+k))??d}catch(e){return d}},set=(k,v)=>{try{localStorage.setItem('jvx_ultimate_'+k,JSON.stringify(v))}catch(e){}};
-const nm=c=>c?.name?.common||'Unknown', cap=c=>(c?.capital||[]).join(', ')||'Not listed', cont=c=>(c?.continents||[c?.region||'Unknown']).join(', '), langs=c=>Object.values(c?.languages||{}).join(', ')||'Not listed', curr=c=>Object.values(c?.currencies||{}).map(x=>x.name+(x.symbol?' ('+x.symbol+')':'')).join(', ')||'Not listed', fmt=n=>Number(n||0).toLocaleString('en-IN'), flag=c=>c?.flag||'🌍', code=c=>c?.cca3;
+const nm=c=>c?.name?.common||'Unknown', flag=c=>{const cc=(c?.cca2||'').toUpperCase();return /^[A-Z]{2}$/.test(cc)?String.fromCodePoint(...[...cc].map(ch=>127397+ch.charCodeAt(0))):'🌍'}, cap=c=>(c?.capital||[]).join(', ')||'Not listed', cont=c=>(c?.continents||[c?.region||'Unknown']).join(', '), langs=c=>Object.values(c?.languages||{}).join(', ')||'Not listed', curr=c=>Object.values(c?.currencies||{}).map(x=>x.name+(x.symbol?' ('+x.symbol+')':'')).join(', ')||'Not listed', fmt=n=>Number(n||0).toLocaleString('en-IN'), code=c=>c?.cca3;
 const byCode=x=>countries.find(c=>c.cca3===x||c.cca2===x);
 function openView(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===id));if(id==='atlas')initMap();if(id==='passport')renderPassport();if(id==='rankings')renderRankings();if(id==='time')renderClocks();window.scrollTo({top:0,behavior:'smooth'})}
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>openView(b.dataset.view)));
@@ -118,14 +119,77 @@ function renderPassport(){let fav=get('favs').map(byCode).filter(Boolean),hist=g
 function question(){if(countries.length<4)return;quizLocked=false;asked++;let pool=countries.filter(c=>c.population>1000000);if($('quizLevel').value==='large')pool=pool.filter(c=>c.population>10000000);if(!pool.length)pool=countries;let correct=pool[Math.floor(Math.random()*pool.length)],mode=$('quizMode').value,prompt='',answer=c=>nm(c);if(mode==='flag')prompt=`Which country does this flag belong to? <div style="font-size:82px;margin:16px">${flag(correct)}</div>`;if(mode==='capital'){prompt=`What is the capital of <b>${esc(nm(correct))}</b>?`;answer=cap}if(mode==='currency'){prompt=`Which currency is used in <b>${esc(nm(correct))}</b>?`;answer=c=>curr(c).split(' (')[0]}if(mode==='continent'){prompt=`Which continent is <b>${esc(nm(correct))}</b> in?`;answer=cont}if(mode==='population'){let opts=[correct];while(opts.length<4){let x=pool[Math.floor(Math.random()*pool.length)];if(!opts.includes(x))opts.push(x)}opts.sort(()=>Math.random()-.5);prompt=`Which country has the largest population among these options?`;quizAnswer=opts.reduce((a,b)=>(a.population||0)>(b.population||0)?a:b);$('quizPrompt').innerHTML=prompt;$('answers').innerHTML=opts.map(c=>`<button class="answer" data-code="${c.cca3}">${esc(nm(c))}</button>`).join('');}else{quizAnswer=correct;let opts=[correct];while(opts.length<4){let x=countries[Math.floor(Math.random()*countries.length)];if(!opts.some(y=>y.cca3===x.cca3))opts.push(x)}opts.sort(()=>Math.random()-.5);$('quizPrompt').innerHTML=prompt;$('answers').innerHTML=opts.map(c=>`<button class="answer" data-code="${c.cca3}">${esc(answer(c))}</button>`).join('')}
 $('quizFeedback').textContent='Choose your answer.';$('quizProgress').style.width=(asked%10)*10+'%';$('answers').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(quizLocked)return;quizLocked=true;let ok=b.dataset.code===quizAnswer.cca3;if(ok)score++;$('answers').querySelectorAll('button').forEach(x=>{x.disabled=true;if(x.dataset.code===quizAnswer.cca3)x.classList.add('correct')});if(!ok)b.classList.add('wrong');$('scoreBadge').textContent=`Score: ${score}`;$('quizFeedback').textContent=ok?'Correct! Excellent work. 🎉':`Correct answer: ${nm(quizAnswer)}.`;set('quizScore',score);});
 }
-function initMap(){if(map||!window.L)return;map=L.map('map',{worldCopyJump:true}).setView([18,0],2);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:8,attribution:'&copy; OpenStreetMap'}).addTo(map);$('mapStatus').textContent='Loading country boundaries…';fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson').then(r=>{if(!r.ok)throw Error('GeoJSON unavailable');return r.json()}).then(geo=>{geoLayer=L.geoJSON(geo,{style:()=>({color:'#7ba5cb',weight:1,fillColor:'#22618c',fillOpacity:.36}),onEachFeature:(f,l)=>{let p=f.properties||{},label=p.ADMIN||p.name||p.NAME||'Country';l.bindTooltip(label);l.on('mouseover',()=>l.setStyle({fillColor:'#52b7e8',fillOpacity:.75,weight:2}));l.on('mouseout',()=>geoLayer.resetStyle(l));l.on('click',()=>{let c=countries.find(x=>norm(nm(x))===norm(label)||norm(x.name?.official)===norm(label));if(c)profile(c);else $('mapStatus').textContent=`No matching profile found for ${label}. Try searching in Countries.`})}}).addTo(map);$('mapStatus').textContent='Map ready. Tap a country to open its profile.'}).catch(()=>{$('mapStatus').textContent='Country boundaries could not load. Search and encyclopedia features remain available.'});setTimeout(()=>map.invalidateSize(),250)}
+function initMap(){
+ if(map||!window.L)return;
+ map=L.map('map',{worldCopyJump:true,minZoom:1,maxZoom:8}).setView([18,0],2);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:8,attribution:'&copy; OpenStreetMap'}).addTo(map);
+ $('mapStatus').textContent='Loading interactive country borders…';
+ // A country directory remains available even if a map-data host is temporarily unavailable.
+ renderAtlasDirectory();
+ const urls=[
+  'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json',
+  'https://unpkg.com/world-atlas@2/countries-110m.json'
+ ];
+ const loadTopo=async()=>{let last;for(const url of urls){try{const r=await fetch(url);if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}catch(e){last=e}}throw last||Error('Map data unavailable')};
+ loadTopo().then(topology=>{
+  if(!window.topojson)throw Error('TopoJSON library unavailable');
+  const object=topology.objects.countries||Object.values(topology.objects)[0];
+  const geo=topojson.feature(topology,object);
+  geoLayer=L.geoJSON(geo,{
+   style:()=>({color:'#9bc5e8',weight:1.1,fillColor:'#2477ad',fillOpacity:.42}),
+   onEachFeature:(feature,layer)=>{
+    const label=feature.properties?.name||'Country';
+    const found=matchMapCountry(label,feature.id);
+    layer.bindTooltip(found?`${flag(found)} ${nm(found)}`:label,{sticky:true});
+    layer.on('mouseover',()=>layer.setStyle({fillColor:'#62c8ee',fillOpacity:.82,weight:2}));
+    layer.on('mouseout',()=>geoLayer.resetStyle(layer));
+    layer.on('click',()=>{
+      if(found){profile(found)}
+      else {$('mapStatus').textContent=`${label}: boundary found, but its country record could not be matched. Use the country directory below.`}
+    });
+   }
+  }).addTo(map);
+  $('mapStatus').textContent=`Interactive borders loaded. ${geo.features.length} map features available — tap a country shape.`;
+  setTimeout(()=>map.invalidateSize(),200);
+ }).catch(err=>{
+  $('mapStatus').textContent='Country boundary overlay could not load from the map provider. The flag directory below remains fully clickable; try reloading later.';
+  console.warn('World atlas boundary load failed:',err);
+ });
+ setTimeout(()=>map.invalidateSize(),250);
+}
+function matchMapCountry(label,id){
+ const aliases={
+  'united states of america':'United States','united states':'United States','usa':'United States',
+  'russian federation':'Russia','south korea':'South Korea','korea, republic of':'South Korea',
+  'north korea':'North Korea','korea, democratic people\'s republic of':'North Korea',
+  'iran':'Iran','iran, islamic republic of':'Iran','syria':'Syria','syrian arab republic':'Syria',
+  'laos':'Laos','lao pdr':'Laos','viet nam':'Vietnam','vietnam':'Vietnam',
+  'czechia':'Czechia','czech republic':'Czechia','ivory coast':'Côte d’Ivoire',"cote d'ivoire":"Côte d’Ivoire",
+  'democratic republic of the congo':'DR Congo','dr congo':'DR Congo','congo, the democratic republic of the':'DR Congo',
+  'republic of the congo':'Republic of the Congo','congo':'Republic of the Congo',
+  'swaziland':'Eswatini','macedonia':'North Macedonia','north macedonia':'North Macedonia',
+  'burma':'Myanmar','myanmar':'Myanmar','tanzania':'Tanzania','united republic of tanzania':'Tanzania',
+  'bolivia':'Bolivia','venezuela':'Venezuela','brunei':'Brunei','brunei darussalam':'Brunei',
+  'palestine':'Palestine','state of palestine':'Palestine','vatican':'Vatican City','vatican city':'Vatican City',
+  'east timor':'Timor-Leste','timor-leste':'Timor-Leste','turkey':'Turkey','türkiye':'Turkey'
+ };
+ const key=norm(label), wanted=aliases[key]||label;
+ return countries.find(c=>norm(nm(c))===norm(wanted)||norm(c.name?.official)===key||norm(nm(c))===key)||null;
+}
+function renderAtlasDirectory(){
+ if(!countries.length)return;
+ const q=($('atlasSearch')?.value||'').trim().toLowerCase(),co=$('atlasContinent')?.value||'';
+ const list=countries.filter(c=>(!co||cont(c).includes(co))&&(!q||[nm(c),cap(c),c.cca2,c.cca3,cont(c)].join(' ').toLowerCase().includes(q))).sort((a,b)=>nm(a).localeCompare(nm(b)));
+ $('atlasCountryGrid').innerHTML=list.map(card).join('')||'<div class="empty">No matching countries.</div>';
+ bindCards($('atlasCountryGrid'));
+}
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'')}
-$('mapWorld').onclick=()=>map?.setView([18,0],2);$('mapReset').onclick=()=>map?.setView([18,0],2);$('mapContinent').onchange=()=>{if(!map)return;let v=$('mapContinent').value;if(!v){map.setView([18,0],2);return}let centers={Africa:[2,20],Asia:[34,95],Europe:[52,15],'North America':[42,-100],'South America':[-15,-60],Oceania:[-22,140]};map.setView(centers[v]||[18,0],v==='Asia'?3:3)};
+$('atlasSearch').oninput=renderAtlasDirectory;$('atlasContinent').onchange=renderAtlasDirectory;$('mapWorld').onclick=()=>map?.setView([18,0],2);$('mapReset').onclick=()=>map?.setView([18,0],2);$('mapContinent').onchange=()=>{if(!map)return;let v=$('mapContinent').value;if(!v){map.setView([18,0],2);return}let centers={Africa:[2,20],Asia:[34,95],Europe:[52,15],'North America':[42,-100],'South America':[-15,-60],Oceania:[-22,140]};map.setView(centers[v]||[18,0],v==='Asia'?3:3)};
 const cities=[['New Delhi','Asia/Kolkata'],['Tokyo','Asia/Tokyo'],['London','Europe/London'],['Paris','Europe/Paris'],['New York','America/New_York'],['Dubai','Asia/Dubai'],['Sydney','Australia/Sydney'],['Nairobi','Africa/Nairobi'],['São Paulo','America/Sao_Paulo'],['Singapore','Asia/Singapore']];
 function renderClocks(){let now=new Date();$('clocks').innerHTML=cities.map(([city,tz])=>{let time=new Intl.DateTimeFormat('en-IN',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}).format(now),date=new Intl.DateTimeFormat('en-IN',{timeZone:tz,dateStyle:'medium'}).format(now);return `<div class="mini"><b>🌐 ${city}</b><div style="font-size:25px;font-weight:800">${time}</div><small class="muted">${date} · ${tz}</small></div>`}).join('');$('dayNight').innerHTML=cities.map(([city,tz])=>{let h=Number(new Intl.DateTimeFormat('en-US',{timeZone:tz,hour:'2-digit',hourCycle:'h23'}).format(now));return `<div class="mini"><b>${h>=6&&h<18?'☀️ Daytime':'🌙 Nighttime'} · ${city}</b><small class="muted">Local hour: ${h}:00</small></div>`}).join('')}
 $('search').oninput=()=>{shown=60;renderCountries()};$('filterContinent').onchange=()=>{shown=60;renderCountries()};$('sort').onchange=renderCountries;$('loadMore').onclick=()=>{shown+=60;renderCountries()};$('randomAgain').onclick=random;$('surprise').onclick=()=>{random();openView('home');$('randomResult').scrollIntoView({behavior:'smooth',block:'center'})};$('quizNext').onclick=question;$('quizReset').onclick=()=>{score=0;asked=0;$('scoreBadge').textContent='Score: 0';$('quizFeedback').textContent='Score reset.';$('quizProgress').style.width='0%'};$('quizMode').onchange=()=>{$('quizPrompt').textContent='Ready for a new challenge?';$('answers').innerHTML='';$('quizFeedback').textContent='Press Start challenge.'};$('cultureSearch').oninput=()=>{let q=$('cultureSearch').value.toLowerCase();let match=countries.find(c=>nm(c).toLowerCase().includes(q));if(match)$('cultureSelect').value=match.cca3,renderCulture()};$('markVisited').onclick=()=>{let x=$('visitedSelect').value,a=get('visited');if(!a.includes(x))a.push(x);set('visited',a);renderPassport()};$('clearHistory').onclick=()=>{if(confirm('Clear your discovery history?')){set('history',[]);renderPassport()}};$('exportPassport').onclick=()=>{let data={favourites:get('favs'),visited:get('visited'),history:get('history'),quizScore:get('quizScore'),exported:new Date().toISOString()};let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='jayvox-world-passport.json';a.click();URL.revokeObjectURL(a.href)};$('shareBtn').onclick=()=>{if(navigator.share)navigator.share({title:document.title,url:location.href});else navigator.clipboard?.writeText(location.href).then(()=>alert('Page link copied.'))};$('themeBtn').onclick=()=>{document.body.classList.toggle('light');if(document.body.classList.contains('light')){document.documentElement.style.setProperty('--bg','#eaf1f8');document.documentElement.style.setProperty('--surface','#fff');document.documentElement.style.setProperty('--surface2','#e6eef7');document.documentElement.style.setProperty('--surface3','#d8e5f2');document.documentElement.style.setProperty('--text','#142236');document.documentElement.style.setProperty('--muted','#52647a');document.documentElement.style.setProperty('--line','#c5d3e2');$('themeBtn').textContent='🌙'}else{['bg','surface','surface2','surface3','text','muted','line'].forEach((x,i)=>document.documentElement.style.removeProperty('--'+x));$('themeBtn').textContent='☀️'}};$('modalClose').onclick=()=>$('modal').classList.remove('open');
 async function init(){let cached=get('countryCache',null);if(cached?.length){countries=cached;$('status').textContent=`Loaded ${countries.length} countries from this browser's cache. Refreshing data…`;boot();}try{let r=await fetch(API);if(!r.ok)throw Error('Country service unavailable');let data=await r.json();if(!Array.isArray(data)||!data.length)throw Error('Empty country data');countries=data.sort((a,b)=>nm(a).localeCompare(nm(b)));set('countryCache',countries);$('status').textContent=`Country data updated · ${countries.length} countries and territories.`;boot()}catch(e){if(!countries.length)$('status').innerHTML='<span class="error">Could not load country data. Connect to the internet and reload. Previously cached data will be used automatically when available.</span>';else $('status').textContent=`Using cached country data · ${countries.length} countries.`;}}
-function boot(){renderHome();renderCountries();setupSelects();renderPassport();renderRankings();if(!boot.done){boot.done=true;$('scoreBadge').textContent='Score: '+get('quizScore',0)}}
+function boot(){renderHome();renderCountries();renderAtlasDirectory();setupSelects();renderPassport();renderRankings();if(!boot.done){boot.done=true;$('scoreBadge').textContent='Score: '+get('quizScore',0)}}
 setInterval(()=>{if($('time').classList.contains('active'))renderClocks()},1000);
 init();
 })();
