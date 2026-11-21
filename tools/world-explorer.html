@@ -75,7 +75,7 @@
 <div class="panel"><h3>🌗 Day and night by time zone</h3><p class="muted">A simplified local-time indicator for selected cities, not a live satellite day/night map.</p><div class="daynight" id="dayNight"></div></div>
 </section>
 
-<div class="footer">JayVox World Explorer · Ultimate Edition<br>Country data: REST Countries · Map: OpenStreetMap, Leaflet and public GeoJSON<br>Local favourites, passport and quiz progress stay in this browser. External services require an internet connection.</div>
+<div class="footer">JayVox World Explorer · Geography Update<br>Country data: REST Countries · Map: OpenStreetMap, Leaflet and public GeoJSON<br>Local favourites, passport and quiz progress stay in this browser. External services require an internet connection.</div>
 </main>
 <div class="modal" id="modal"><div class="modalbox"><button class="btn small close" id="modalClose">✕ Close</button><div id="modalContent"></div></div></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -93,6 +93,8 @@ const byCode=x=>countries.find(c=>String(c.cca3||'').toUpperCase()===String(x||'
 // The bundled Natural Earth-derived country directory is the offline reference
 // for land borders; use it to restore missing neighbours for every country.
 const LANDLOCKED_CODES=new Set(['AFG','AND','ARM','AUT','AZE','BLR','BTN','BOL','BWA','BFA','BDI','CAF','TCD','CZE','ETH','HUN','KAZ','KGZ','LAO','LSO','LIE','LUX','MKD','MWI','MLI','MDA','MNG','NPL','NER','PRY','RWA','SMR','SRB','SVK','SSD','SWZ','CHE','TJK','TKM','UGA','UZB','VAT','ZMB','ZWE']);
+// Explicit corrections for well-known border records in the bundled dataset.
+const BORDER_OVERRIDES={NPL:['CHN','IND'],CHE:['AUT','FRA','DEU','ITA','LIE'],AFG:['IRN','PAK','TKM','UZB','TJK','CHN']};
 function normalizeGeography(list){
  const reference=typeof BUNDLED_COUNTRIES!=='undefined'?BUNDLED_COUNTRIES:[];
  const referenceByCode=new Map(reference.filter(x=>x.cca3).map(x=>[String(x.cca3).toUpperCase(),x]));
@@ -100,11 +102,14 @@ function normalizeGeography(list){
   const k=String(c.cca3||'').toUpperCase();
   const ref=referenceByCode.get(k);
   if(LANDLOCKED_CODES.has(k))c.landlocked=true;
-  // Restore borders only when the live source has no usable list. Preserve
-  // valid live border data, while ensuring empty API fields don't erase it.
-  if((!Array.isArray(c.borders)||c.borders.length===0)&&Array.isArray(ref?.borders)&&ref.borders.length)c.borders=[...ref.borders];
-  // The bundled reference is also authoritative for landlocked status.
+  // Prefer the bundled geography reference for land borders. The live API
+  // can return incomplete or empty border arrays; using one consistent
+  // reference avoids profiles disagreeing between cached and live sessions.
+  if(BORDER_OVERRIDES[k])c.borders=[...BORDER_OVERRIDES[k]];
+  else if(Array.isArray(ref?.borders))c.borders=[...ref.borders];
+  // Keep landlocked status consistent with the verified ISO-code set.
   if(LANDLOCKED_CODES.has(k))c.landlocked=true;
+  else if(ref && Array.isArray(ref.borders) && ref.borders.length>0)c.landlocked=false;
  }
  return list;
 }
