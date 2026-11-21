@@ -89,9 +89,25 @@ let countries=[],shown=60,current=null,previousView='countries',map=null,geoLaye
 const get=(k,d=[])=>{try{return JSON.parse(localStorage.getItem('jvx_ultimate_'+k))??d}catch(e){return d}},set=(k,v)=>{try{localStorage.setItem('jvx_ultimate_'+k,JSON.stringify(v))}catch(e){}};
 const nm=c=>c?.name?.common||'Unknown', flag=c=>{const cc=(c?.cca2||'').toUpperCase();return /^[A-Z]{2}$/.test(cc)?String.fromCodePoint(...[...cc].map(ch=>127397+ch.charCodeAt(0))):'🌍'}, cap=c=>(c?.capital||[]).join(', ')||'Not listed', cont=c=>(c?.continents||[c?.region||'Unknown']).join(', '), langs=c=>Object.values(c?.languages||{}).join(', ')||'Not listed', curr=c=>Object.values(c?.currencies||{}).map(x=>x.name+(x.symbol?' ('+x.symbol+')':'')).join(', ')||'Not listed', fmt=n=>Number(n||0).toLocaleString('en-IN'), code=c=>c?.cca3;
 const byCode=x=>countries.find(c=>String(c.cca3||'').toUpperCase()===String(x||'').toUpperCase()||String(c.cca2||'').toUpperCase()===String(x||'').toUpperCase());
-// Correct known geographic facts and fill missing Afghanistan border data.
+// Geography integrity layer: live API responses can omit border arrays.
+// The bundled Natural Earth-derived country directory is the offline reference
+// for land borders; use it to restore missing neighbours for every country.
 const LANDLOCKED_CODES=new Set(['AFG','AND','ARM','AUT','AZE','BLR','BTN','BOL','BWA','BFA','BDI','CAF','TCD','CZE','ETH','HUN','KAZ','KGZ','LAO','LSO','LIE','LUX','MKD','MWI','MLI','MDA','MNG','NPL','NER','PRY','RWA','SMR','SRB','SVK','SSD','SWZ','CHE','TJK','TKM','UGA','UZB','VAT','ZMB','ZWE']);
-function normalizeGeography(list){for(const c of list){const k=String(c.cca3||'').toUpperCase();if(LANDLOCKED_CODES.has(k))c.landlocked=true;if(k==='AFG'){c.landlocked=true;if(!Array.isArray(c.borders)||c.borders.length<5)c.borders=['IRN','PAK','TKM','UZB','TJK','CHN'];}}return list;}
+function normalizeGeography(list){
+ const reference=typeof BUNDLED_COUNTRIES!=='undefined'?BUNDLED_COUNTRIES:[];
+ const referenceByCode=new Map(reference.filter(x=>x.cca3).map(x=>[String(x.cca3).toUpperCase(),x]));
+ for(const c of list){
+  const k=String(c.cca3||'').toUpperCase();
+  const ref=referenceByCode.get(k);
+  if(LANDLOCKED_CODES.has(k))c.landlocked=true;
+  // Restore borders only when the live source has no usable list. Preserve
+  // valid live border data, while ensuring empty API fields don't erase it.
+  if((!Array.isArray(c.borders)||c.borders.length===0)&&Array.isArray(ref?.borders)&&ref.borders.length)c.borders=[...ref.borders];
+  // The bundled reference is also authoritative for landlocked status.
+  if(LANDLOCKED_CODES.has(k))c.landlocked=true;
+ }
+ return list;
+}
 function openView(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===id));if(id==='atlas')initMap();if(id==='passport')renderPassport();if(id==='rankings')renderRankings();if(id==='time')renderClocks();window.scrollTo({top:0,behavior:'smooth'})}
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>openView(b.dataset.view)));
 function card(c){return `<button class="country" data-code="${esc(code(c))}"><span class="flag">${flag(c)}</span><span><strong>${esc(nm(c))}</strong><small>${esc(cap(c))} · ${esc(cont(c))}</small></span></button>`}
